@@ -1,0 +1,26 @@
+[
+  {
+    "title": "Live Gaming",
+    "category": "Games",
+    "link": "https://raw.githubusercontent.com/Universidade-Livre/imagens/refs/heads/main/png/header_002.png",
+    "description": "With the Twitch channel, you can watch the most popular broadcast...",
+    "pubDate": "Thu, 11 Jun 2015 16:51:07 GMT",
+    "guid": "decbe34b64ea4ca281dc09997d0f23fd",
+    "media": {
+      "channels": "2",
+      "bitrate": "1328.0",
+      "duration": "53",
+      "fileSize": "8731706",
+      "framerate": "23.976",
+      "height": "720",
+      "width": "1280",
+      "type": "video/png",
+      "isDefault": "true",
+      "url": "https://raw.githubusercontent.com/Universidade-Livre/imagens/refs/heads/main/png/header_002.png",
+      "description": "With the Twitch channel, you can watch the most popular broadcast...",
+      "keywords": "episode 21, roku recommends, twitch",
+      "thumbnail": "https://raw.githubusercontent.com/Universidade-Livre/imagens/refs/heads/main/png/header_002.png",
+      "title": "Live Gaming"
+    }
+  }
+]
