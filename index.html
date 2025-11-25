@@ -843,6 +843,61 @@
     .btn-merge:hover {
       background: #1976D2;
     }
+
+    /* Modal de Download RSS */
+    .download-options {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+    
+    .download-options button {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.2s ease;
+    }
+    
+    .btn-download-local {
+      background: #4CAF50;
+      color: white;
+    }
+    
+    .btn-download-local:hover {
+      background: #45a049;
+    }
+    
+    .btn-download-github {
+      background: #333;
+      color: white;
+    }
+    
+    .btn-download-github:hover {
+      background: #555;
+    }
+    
+    .github-status {
+      margin-top: 10px;
+      padding: 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      display: none;
+    }
+    
+    .github-success {
+      background: rgba(76, 175, 80, 0.2);
+      border: 1px solid #4caf50;
+      color: #4caf50;
+    }
+    
+    .github-error {
+      background: rgba(244, 67, 54, 0.2);
+      border: 1px solid #f44336;
+      color: #f44336;
+    }
   </style>
 </head>
 <body>
@@ -865,7 +920,7 @@
     <button class="btn-export" onclick="exportData()">Exportar Dados</button>
     <button class="btn-import" onclick="document.getElementById('import-file').click()">Importar JSON</button>
     <button class="btn-import-rss" onclick="document.getElementById('import-rss-file').click()">Importar RSS</button>
-    <button class="btn-download-rss" onclick="downloadRSSFile()">Download RSS</button>
+    <button class="btn-download-rss" onclick="openDownloadModal()">Download RSS</button>
     <input type="file" id="import-file" accept=".json" style="display: none" onchange="importData(event)">
     <input type="file" id="import-rss-file" accept=".rss,.xml" style="display: none" onchange="importRSSData(event)">
   </div>
@@ -1090,12 +1145,45 @@
   </div>
 </div>
 
+<!-- Modal de Download RSS -->
+<div class="modal" id="modal-download-rss">
+  <div class="modal-box">
+    <h3>📥 Download RSS</h3>
+    
+    <div class="form-group">
+      <label>Escolha como deseja salvar o arquivo RSS:</label>
+      <p>Arquivo: <strong id="download-filename">FlixHome.rss</strong></p>
+    </div>
+
+    <div class="download-options">
+      <button class="btn-download-local" onclick="downloadRSSLocal()">📥 Download Local</button>
+      <button class="btn-download-github" onclick="uploadToGitHub()">🚀 Enviar para GitHub</button>
+    </div>
+
+    <div class="github-status" id="github-status"></div>
+
+    <div class="modal-buttons">
+      <button class="btn-cancel" onclick="closeDownloadModal()">Fechar</button>
+    </div>
+
+    <div class="modal-info">
+      💡 <strong>Download Local:</strong> Baixa o arquivo para seu dispositivo.<br>
+      💡 <strong>Enviar para GitHub:</strong> Faz upload direto para o repositório ROKU.
+    </div>
+  </div>
+</div>
+
 <script>
   // Configurações
   const TMDB_API_KEY = '0dea6057249cfc73c2758f6166eb0d6f';
   const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
   const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500';
   const CANAL_LOGO_BASE_URL = 'https://api.reidoscanais.io/img/';
+
+  // Configurações do GitHub
+  const GITHUB_TOKEN = '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';
+  const GITHUB_REPO = 'Fu6rfho5zf/ROKU';
+  const GITHUB_BASE_URL = 'https://api.github.com';
 
   // Estado da aplicação
   let currentTab = 'home';
@@ -1180,8 +1268,32 @@
     showStatus('✅ Dados exportados com sucesso!', 'success');
   }
 
-  // Download arquivo RSS
-  function downloadRSSFile() {
+  // Função para abrir modal de download
+  function openDownloadModal() {
+    const fileName = getRSSFileName();
+    document.getElementById('download-filename').textContent = fileName;
+    document.getElementById('modal-download-rss').classList.add('active');
+  }
+
+  // Função para fechar modal de download
+  function closeDownloadModal() {
+    document.getElementById('modal-download-rss').classList.remove('active');
+    document.getElementById('github-status').style.display = 'none';
+  }
+
+  // Função para obter nome do arquivo RSS baseado na aba atual
+  function getRSSFileName() {
+    const tabNames = {
+      'home': 'FlixHome',
+      'canais': 'FlixCanais', 
+      'filmes': 'FlixFilmes',
+      'series': 'FlixSeries'
+    };
+    return `${tabNames[currentTab] || 'FlixHome'}.rss`;
+  }
+
+  // Função para download local
+  function downloadRSSLocal() {
     const items = rssItems[currentTab];
     const xmlContent = buildRSSFromItems(items);
     const dataBlob = new Blob([xmlContent], {type: 'application/rss+xml'});
@@ -1190,8 +1302,7 @@
     const link = document.createElement('a');
     link.href = url;
     
-    // Nome do arquivo baseado na aba atual
-    const fileName = `Flix${currentTab.charAt(0).toUpperCase() + currentTab.slice(1)}.rss`;
+    const fileName = getRSSFileName();
     link.download = fileName;
     
     document.body.appendChild(link);
@@ -1200,6 +1311,83 @@
     URL.revokeObjectURL(url);
     
     showStatus(`✅ Arquivo ${fileName} baixado com sucesso!`, 'success');
+    closeDownloadModal();
+  }
+
+  // Função para upload no GitHub
+  async function uploadToGitHub() {
+    const statusDiv = document.getElementById('github-status');
+    const fileName = getRSSFileName();
+    const items = rssItems[currentTab];
+    const xmlContent = buildRSSFromItems(items);
+    
+    showLoading('Enviando para GitHub...');
+    
+    try {
+      // Primeiro, verifica se o arquivo já existe para obter o SHA
+      let sha = null;
+      try {
+        const existingFile = await fetch(
+          `${GITHUB_BASE_URL}/repos/${GITHUB_REPO}/contents/${fileName}`,
+          {
+            headers: {
+              'Authorization': `token ${GITHUB_TOKEN}`,
+              'Accept': 'application/vnd.github.v3+json'
+            }
+          }
+        );
+        
+        if (existingFile.ok) {
+          const fileData = await existingFile.json();
+          sha = fileData.sha;
+        }
+      } catch (e) {
+        // Arquivo não existe, continuar sem SHA
+        console.log('Arquivo não existe, criando novo...');
+      }
+      
+      // Faz o upload do arquivo
+      const response = await fetch(
+        `${GITHUB_BASE_URL}/repos/${GITHUB_REPO}/contents/${fileName}`,
+        {
+          method: 'PUT',
+          headers: {
+            'Authorization': `token ${GITHUB_TOKEN}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/vnd.github.v3+json'
+          },
+          body: JSON.stringify({
+            message: `Atualização automática: ${fileName}`,
+            content: btoa(unescape(encodeURIComponent(xmlContent))),
+            sha: sha
+          })
+        }
+      );
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Erro ao enviar para GitHub');
+      }
+      
+      hideLoading();
+      statusDiv.textContent = `✅ Arquivo ${fileName} enviado com sucesso para o GitHub!`;
+      statusDiv.className = 'github-status github-success';
+      statusDiv.style.display = 'block';
+      
+      showStatus(`✅ Arquivo ${fileName} enviado para GitHub com sucesso!`, 'success');
+      
+      // Fecha o modal após 2 segundos
+      setTimeout(() => {
+        closeDownloadModal();
+      }, 2000);
+      
+    } catch (error) {
+      hideLoading();
+      console.error('Erro ao enviar para GitHub:', error);
+      statusDiv.textContent = `❌ Erro ao enviar para GitHub: ${error.message}`;
+      statusDiv.className = 'github-status github-error';
+      statusDiv.style.display = 'block';
+    }
   }
 
   // Importar dados JSON
@@ -2207,6 +2395,7 @@
       closeM3UModal();
       closeExportModal();
       closeReplaceRSSModal();
+      closeDownloadModal();
     }
   });
 </script>
