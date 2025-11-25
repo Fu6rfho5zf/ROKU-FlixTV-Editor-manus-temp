@@ -919,6 +919,16 @@
       outline: none;
       border-color: #2196F3;
     }
+
+    .token-instructions {
+      background: rgba(33, 150, 243, 0.1);
+      border-left: 3px solid #2196F3;
+      padding: 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      margin-top: 10px;
+      color: #b3b3b3;
+    }
   </style>
 </head>
 <body>
@@ -1182,11 +1192,15 @@
     </div>
 
     <div class="github-token-input">
-      <label for="github-token">Token GitHub (opcional):</label>
-      <input type="password" id="github-token" placeholder="Cole seu token GitHub aqui" />
-      <div style="font-size: 11px; color: #888; margin-top: 5px;">
-        💡 Se não funcionar, cole seu token GitHub acima
-      </div>
+      <label for="github-token">Token GitHub (obrigatório):</label>
+      <input type="password" id="github-token" placeholder="Cole seu token GitHub pessoal aqui" />
+    </div>
+
+    <div class="token-instructions">
+      💡 <strong>Como obter um token:</strong><br>
+      1. Acesse GitHub.com → Settings → Developer settings → Personal access tokens<br>
+      2. Crie um novo token com permissões <strong>repo</strong> (full control of private repositories)<br>
+      3. Cole o token acima
     </div>
 
     <div class="github-status" id="github-status"></div>
@@ -1301,6 +1315,9 @@
     const fileName = getRSSFileName();
     document.getElementById('download-filename').textContent = fileName;
     document.getElementById('modal-download-rss').classList.add('active');
+    
+    // Limpar status anterior
+    document.getElementById('github-status').style.display = 'none';
   }
 
   // Função para fechar modal de download
@@ -1349,17 +1366,20 @@
     const items = rssItems[currentTab];
     const xmlContent = buildRSSFromItems(items);
     
-    // Obter token do input ou usar o padrão
+    // Obter token do input
     const tokenInput = document.getElementById('github-token');
-    let githubToken = tokenInput.value.trim();
+    const githubToken = tokenInput.value.trim();
     
     if (!githubToken) {
-      // Usar token padrão se não houver input
-      githubToken = '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';
+      statusDiv.textContent = '❌ Token GitHub é obrigatório. Cole seu token pessoal no campo acima.';
+      statusDiv.className = 'github-status github-error';
+      statusDiv.style.display = 'block';
+      return;
     }
-    
-    if (!githubToken) {
-      statusDiv.textContent = '❌ Token GitHub não encontrado. Cole seu token no campo acima.';
+
+    // Verificar formato do token (deve começar com ghp_ ou github_pat_)
+    if (!githubToken.startsWith('ghp_') && !githubToken.startsWith('github_pat_')) {
+      statusDiv.textContent = '❌ Token inválido. O token deve começar com "ghp_" ou "github_pat_"';
       statusDiv.className = 'github-status github-error';
       statusDiv.style.display = 'block';
       return;
@@ -1375,7 +1395,7 @@
           `${GITHUB_BASE_URL}/repos/${GITHUB_REPO}/contents/${fileName}`,
           {
             headers: {
-              'Authorization': `token ${githubToken}`,
+              'Authorization': `Bearer ${githubToken}`,
               'Accept': 'application/vnd.github.v3+json'
             }
           }
@@ -1384,11 +1404,23 @@
         if (existingFile.ok) {
           const fileData = await existingFile.json();
           sha = fileData.sha;
+        } else if (existingFile.status === 404) {
+          // Arquivo não existe, continuar sem SHA
+          console.log('Arquivo não existe, criando novo...');
+        } else {
+          throw new Error(`Erro ao verificar arquivo: ${existingFile.status}`);
         }
       } catch (e) {
-        // Arquivo não existe, continuar sem SHA
-        console.log('Arquivo não existe, criando novo...');
+        console.log('Erro ao verificar arquivo existente:', e);
       }
+      
+      // Codificar conteúdo para base64
+      const contentBytes = new TextEncoder().encode(xmlContent);
+      let contentBase64 = '';
+      for (let i = 0; i < contentBytes.length; i++) {
+        contentBase64 += String.fromCharCode(contentBytes[i]);
+      }
+      contentBase64 = btoa(contentBase64);
       
       // Faz o upload do arquivo
       const response = await fetch(
@@ -1396,13 +1428,13 @@
         {
           method: 'PUT',
           headers: {
-            'Authorization': `token ${githubToken}`,
+            'Authorization': `Bearer ${githubToken}`,
             'Content-Type': 'application/json',
             'Accept': 'application/vnd.github.v3+json'
           },
           body: JSON.stringify({
             message: `Atualização automática: ${fileName}`,
-            content: btoa(unescape(encodeURIComponent(xmlContent))),
+            content: contentBase64,
             sha: sha
           })
         }
@@ -1410,8 +1442,21 @@
       
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Erro ao enviar para GitHub');
+        let errorMessage = errorData.message || 'Erro ao enviar para GitHub';
+        
+        // Mensagens de erro mais específicas
+        if (errorMessage.includes('Bad credentials')) {
+          errorMessage = 'Token inválido ou expirado. Gere um novo token.';
+        } else if (errorMessage.includes('not found')) {
+          errorMessage = 'Repositório não encontrado. Verifique o nome do repositório.';
+        } else if (errorMessage.includes('insufficient_scope')) {
+          errorMessage = 'Token sem permissões suficientes. O token precisa ter permissão "repo".';
+        }
+        
+        throw new Error(errorMessage);
       }
+      
+      const result = await response.json();
       
       hideLoading();
       statusDiv.textContent = `✅ Arquivo ${fileName} enviado com sucesso para o GitHub!`;
@@ -1433,6 +1478,8 @@
       statusDiv.style.display = 'block';
     }
   }
+
+  // [Resto do código permanece igual...]
 
   // Importar dados JSON
   function importData(event) {
