@@ -119,6 +119,39 @@
       font-size: 24px; 
       font-weight: 600; 
       letter-spacing: -0.5px; 
+      flex: 1; 
+    } 
+    /* Botões de movimento */ 
+    .category-move-buttons { 
+      display: flex; 
+      gap: 8px; 
+      margin-left: auto; 
+    } 
+    .move-btn { 
+      background: #333; 
+      border: none; 
+      color: white; 
+      width: 36px; 
+      height: 36px; 
+      border-radius: 6px; 
+      cursor: pointer; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      font-size: 16px; 
+      transition: all 0.2s ease; 
+    } 
+    .move-btn:hover { 
+      background: #e50914; 
+      transform: scale(1.1); 
+    } 
+    .move-btn:disabled { 
+      opacity: 0.3; 
+      cursor: not-allowed; 
+      transform: none; 
+    } 
+    .move-btn:disabled:hover { 
+      background: #333; 
     } 
     /* Content Grid */ 
     .content-list { 
@@ -532,6 +565,14 @@
         height: 56px; 
         font-size: 20px; 
         bottom: 100px; 
+      } 
+      .category-move-buttons { 
+        gap: 5px; 
+      } 
+      .move-btn { 
+        width: 32px; 
+        height: 32px; 
+        font-size: 14px; 
       } 
     } 
     /* Empty State */ 
@@ -1976,8 +2017,28 @@
         const titleCat = document.createElement('h2'); 
         titleCat.textContent = category; 
         
+        // Botões de movimento
+        const moveButtons = document.createElement('div');
+        moveButtons.className = 'category-move-buttons';
+        
+        const moveUpBtn = document.createElement('button');
+        moveUpBtn.className = 'move-btn';
+        moveUpBtn.innerHTML = '⬆️';
+        moveUpBtn.title = 'Mover para cima';
+        moveUpBtn.onclick = () => moveCategoryUp(category);
+        
+        const moveDownBtn = document.createElement('button');
+        moveDownBtn.className = 'move-btn';
+        moveDownBtn.innerHTML = '⬇️';
+        moveDownBtn.title = 'Mover para baixo';
+        moveDownBtn.onclick = () => moveCategoryDown(category);
+        
+        moveButtons.appendChild(moveUpBtn);
+        moveButtons.appendChild(moveDownBtn);
+        
         categoryHeader.appendChild(logoImg); 
         categoryHeader.appendChild(titleCat); 
+        categoryHeader.appendChild(moveButtons);
         divCategory.appendChild(categoryHeader); 
         
         // Grid de conteúdo 
@@ -1992,7 +2053,72 @@
         divCategory.appendChild(divContentList); 
         categoriesContainer.appendChild(divCategory); 
       }); 
+      
+      // Atualizar estado dos botões após renderizar
+      updateMoveButtonsState();
     } 
+    
+    // Função para mover categoria para cima
+    function moveCategoryUp(categoryName) {
+      const categories = Array.from(categoriesContainer.querySelectorAll('.category'));
+      const currentIndex = categories.findIndex(cat => 
+        cat.querySelector('h2').textContent === categoryName
+      );
+      
+      if (currentIndex > 0) {
+        const prevCategory = categories[currentIndex - 1];
+        const currentCategory = categories[currentIndex];
+        
+        categoriesContainer.insertBefore(currentCategory, prevCategory);
+        updateMoveButtonsState();
+        showStatus(`✅ Categoria "${categoryName}" movida para cima`, 'success');
+      }
+    }
+    
+    // Função para mover categoria para baixo
+    function moveCategoryDown(categoryName) {
+      const categories = Array.from(categoriesContainer.querySelectorAll('.category'));
+      const currentIndex = categories.findIndex(cat => 
+        cat.querySelector('h2').textContent === categoryName
+      );
+      
+      if (currentIndex < categories.length - 1) {
+        const nextCategory = categories[currentIndex + 1];
+        const currentCategory = categories[currentIndex];
+        
+        if (nextCategory.nextSibling) {
+          categoriesContainer.insertBefore(currentCategory, nextCategory.nextSibling);
+        } else {
+          categoriesContainer.appendChild(currentCategory);
+        }
+        updateMoveButtonsState();
+        showStatus(`✅ Categoria "${categoryName}" movida para baixo`, 'success');
+      }
+    }
+    
+    // Atualizar estado dos botões de movimento
+    function updateMoveButtonsState() {
+      const categories = Array.from(categoriesContainer.querySelectorAll('.category'));
+      
+      categories.forEach((category, index) => {
+        const moveUpBtn = category.querySelector('.move-btn:first-child');
+        const moveDownBtn = category.querySelector('.move-btn:last-child');
+        
+        // Primeira categoria - desabilitar botão para cima
+        if (index === 0) {
+          moveUpBtn.disabled = true;
+        } else {
+          moveUpBtn.disabled = false;
+        }
+        
+        // Última categoria - desabilitar botão para baixo
+        if (index === categories.length - 1) {
+          moveDownBtn.disabled = true;
+        } else {
+          moveDownBtn.disabled = false;
+        }
+      });
+    }
     
     // Cria card de conteúdo 
     function createContentCard(item) { 
@@ -2398,4 +2524,4 @@
     }); 
   </script> 
 </body> 
-        </html>
+</html>
