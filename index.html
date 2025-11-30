@@ -1,2494 +1,2401 @@
-<!DOCTYPE html>
-<html lang="pt">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Editor RSS FlixTV</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      background: #0f0f0f;
-      color: #fff;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      overflow-x: hidden;
-    }
-
-    /* Header */
-    header {
-      background: linear-gradient(180deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.7) 100%);
-      height: 70px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 40px;
-      position: fixed;
-      width: 100%;
-      top: 0;
-      z-index: 1000;
-      backdrop-filter: blur(10px);
-      border-bottom: 1px solid #333;
-    }
-
-    header h1 {
-      font-size: 28px;
-      font-weight: 700;
-      letter-spacing: -0.5px;
-      color: #e50914;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .header-controls {
-      display: flex;
-      gap: 20px;
-      align-items: center;
-    }
-
-    .icon-config {
-      font-size: 24px;
-      cursor: pointer;
-      transition: transform 0.2s ease;
-      padding: 8px;
-      border-radius: 4px;
-    }
-
-    .icon-config:hover {
-      transform: scale(1.1);
-      background: rgba(229, 9, 20, 0.2);
-    }
-
-    /* Main Content */
-    main {
-      padding: 100px 40px 100px;
-      max-width: 1400px;
-      margin: 0 auto;
-    }
-
-    /* Tabs */
-    .tabs {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 30px;
-      border-bottom: 1px solid #333;
-      padding-bottom: 10px;
-      flex-wrap: wrap;
-    }
-
-    .tab {
-      padding: 10px 20px;
-      background: #1a1a1a;
-      border-radius: 8px 8px 0 0;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      border: 1px solid #333;
-      border-bottom: none;
-    }
-
-    .tab.active {
-      background: #e50914;
-      color: white;
-    }
-
-    .tab:hover:not(.active) {
-      background: #333;
-    }
-
-    .category {
-      margin-bottom: 60px;
-    }
-
-    .category-header {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-      margin-bottom: 20px;
-      padding-bottom: 10px;
-      border-bottom: 2px solid rgba(229, 9, 20, 0.3);
-    }
-
-    .category-logo {
-      width: 50px;
-      height: 50px;
-      border-radius: 8px;
-      background: #1a1a1a;
-      object-fit: cover;
-      border: 2px solid #e50914;
-    }
-
-    .category h2 {
-      font-size: 24px;
-      font-weight: 600;
-      letter-spacing: -0.5px;
-    }
-
-    /* Content Grid */
-    .content-list {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-      gap: 20px;
-      padding-bottom: 10px;
-    }
-
-    .content-card {
-      background: #1a1a1a;
-      border-radius: 8px;
-      overflow: hidden;
-      position: relative;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      border: 2px solid transparent;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .content-card:hover {
-      transform: scale(1.05);
-      border-color: #e50914;
-      box-shadow: 0 8px 24px rgba(229, 9, 20, 0.3);
-    }
-
-    .cover {
-      width: 100%;
-      height: 200px;
-      object-fit: cover;
-      background: #0f0f0f;
-    }
-
-    .card-info {
-      padding: 12px;
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .title {
-      font-weight: 700;
-      font-size: 14px;
-      line-height: 1.3;
-      margin-bottom: 8px;
-      color: #fff;
-    }
-
-    .desc {
-      font-size: 12px;
-      opacity: 0.7;
-      line-height: 1.4;
-      flex: 1;
-      color: #b3b3b3;
-    }
-
-    .edit-btns {
-      position: absolute;
-      top: 8px;
-      right: 8px;
-      display: flex;
-      gap: 6px;
-      opacity: 0;
-      transition: opacity 0.2s ease;
-    }
-
-    .content-card:hover .edit-btns {
-      opacity: 1;
-    }
-
-    .btn {
-      border: none;
-      border-radius: 50%;
-      width: 36px;
-      height: 36px;
-      font-size: 18px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-    }
-
-    .btn-edit {
-      background: #2196F3;
-      color: white;
-    }
-
-    .btn-edit:hover {
-      background: #1976D2;
-      transform: scale(1.1);
-    }
-
-    .btn-del {
-      background: #e50914;
-      color: white;
-    }
-
-    .btn-del:hover {
-      background: #c40812;
-      transform: scale(1.1);
-    }
-
-    /* Footer */
-    footer {
-      position: fixed;
-      bottom: 30px;
-      right: 30px;
-      z-index: 999;
-    }
-
-    #btn-add {
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      background: #e50914;
-      border: none;
-      font-size: 32px;
-      color: white;
-      cursor: pointer;
-      box-shadow: 0 4px 20px rgba(229, 9, 20, 0.5);
-      transition: all 0.3s ease;
-      font-weight: bold;
-    }
-
-    #btn-add:hover {
-      background: #c40812;
-      transform: scale(1.1);
-      box-shadow: 0 8px 30px rgba(229, 9, 20, 0.7);
-    }
-
-    /* Botão Carregar M3U */
-    #btn-load-m3u {
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      background: #2196F3;
-      border: none;
-      font-size: 24px;
-      color: white;
-      cursor: pointer;
-      box-shadow: 0 4px 20px rgba(33, 150, 243, 0.5);
-      transition: all 0.3s ease;
-      font-weight: bold;
-      position: fixed;
-      bottom: 110px;
-      right: 30px;
-      z-index: 999;
-    }
-
-    #btn-load-m3u:hover {
-      background: #1976D2;
-      transform: scale(1.1);
-      box-shadow: 0 8px 30px rgba(33, 150, 243, 0.7);
-    }
-
-    /* Modal */
-    .modal {
-      display: none;
-      align-items: center;
-      justify-content: center;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0, 0, 0, 0.9);
-      z-index: 5000;
-      backdrop-filter: blur(5px);
-    }
-
-    .modal.active {
-      display: flex;
-      animation: fadeIn 0.3s ease;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    .modal-box {
-      background: #1a1a1a;
-      color: #fff;
-      border-radius: 12px;
-      padding: 30px;
-      width: 90vw;
-      max-width: 500px;
-      border: 1px solid #333;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9);
-      max-height: 90vh;
-      overflow-y: auto;
-      animation: slideUp 0.3s ease;
-    }
-
-    @keyframes slideUp {
-      from { transform: translateY(20px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
-
-    .modal-box h3 {
-      margin-bottom: 20px;
-      font-size: 24px;
-      color: #e50914;
-    }
-
-    /* TMDb Search Results Area */
-    #tmdb-results {
-      margin-top: 15px;
-      margin-bottom: 20px;
-      padding: 10px;
-      background: #0f0f0f;
-      border-radius: 8px;
-      border: 1px solid #333;
-      max-height: 200px;
-      overflow-y: auto;
-      display: none;
-    }
-
-    #tmdb-results h4 {
-      margin-top: 0;
-      margin-bottom: 10px;
-      color: #e50914;
-      font-size: 16px;
-    }
-
-    .result-list {
-      display: flex;
-      gap: 10px;
-      overflow-x: auto;
-      padding-bottom: 10px;
-    }
-
-    .result-card {
-      flex-shrink: 0;
-      width: 80px;
-      height: 120px;
-      border-radius: 6px;
-      overflow: hidden;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      border: 2px solid transparent;
-      position: relative;
-    }
-
-    .result-card:hover {
-      border-color: #e50914;
-      transform: scale(1.05);
-    }
-
-    .result-card img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .result-card-info {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: rgba(0, 0, 0, 0.7);
-      color: white;
-      font-size: 10px;
-      padding: 3px;
-      text-align: center;
-      opacity: 0;
-      transition: opacity 0.2s ease;
-    }
-
-    .result-card:hover .result-card-info {
-      opacity: 1;
-    }
-
-    .form-group {
-      margin-bottom: 15px;
-    }
-
-    .form-group label {
-      display: block;
-      margin-bottom: 6px;
-      font-size: 13px;
-      font-weight: 600;
-      color: #b3b3b3;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .modal-box input,
-    .modal-box textarea,
-    .modal-box select {
-      width: 100%;
-      padding: 12px;
-      border-radius: 6px;
-      border: 1px solid #333;
-      background: #0f0f0f;
-      color: #fff;
-      font-family: inherit;
-      font-size: 14px;
-      transition: all 0.2s ease;
-    }
-
-    .modal-box input:focus,
-    .modal-box textarea:focus,
-    .modal-box select:focus {
-      outline: none;
-      border-color: #e50914;
-      background: #1a1a1a;
-      box-shadow: 0 0 0 2px rgba(229, 9, 20, 0.2);
-    }
-
-    .modal-box input:disabled,
-    .modal-box textarea:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    .modal-box textarea {
-      min-height: 100px;
-      resize: vertical;
-    }
-
-    .modal-buttons {
-      display: flex;
-      gap: 10px;
-      margin-top: 25px;
-      justify-content: flex-end;
-    }
-
-    .modal-buttons button {
-      padding: 12px 24px;
-      border: none;
-      border-radius: 6px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .btn-save {
-      background: #e50914;
-      color: white;
-      flex: 1;
-    }
-
-    .btn-save:hover {
-      background: #c40812;
-      transform: translateY(-1px);
-    }
-
-    .btn-cancel {
-      background: #333;
-      color: #fff;
-    }
-
-    .btn-cancel:hover {
-      background: #444;
-      transform: translateY(-1px);
-    }
-
-    .btn-search {
-      background: #2196F3;
-      color: white;
-      flex: 1;
-    }
-
-    .btn-search:hover {
-      background: #1976D2;
-    }
-
-    .modal-info {
-      background: rgba(229, 9, 20, 0.1);
-      border-left: 3px solid #e50914;
-      padding: 12px;
-      border-radius: 4px;
-      font-size: 13px;
-      margin-top: 15px;
-      color: #b3b3b3;
-    }
-
-    /* Loading Spinner */
-    .spinner {
-      display: inline-block;
-      width: 14px;
-      height: 14px;
-      border: 2px solid #333;
-      border-top-color: #e50914;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      margin-left: 8px;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    /* Status Messages */
-    .status-message {
-      padding: 10px;
-      border-radius: 6px;
-      margin: 10px 0;
-      font-size: 14px;
-      display: none;
-    }
-
-    .status-success {
-      background: rgba(76, 175, 80, 0.2);
-      border: 1px solid #4caf50;
-      color: #4caf50;
-    }
-
-    .status-error {
-      background: rgba(244, 67, 54, 0.2);
-      border: 1px solid #f44336;
-      color: #f44336;
-    }
-
-    .status-warning {
-      background: rgba(255, 152, 0, 0.2);
-      border: 1px solid #ff9800;
-      color: #ff9800;
-    }
-
-    /* Responsive */
-    @media (max-width: 1024px) {
-      main {
-        padding: 100px 20px 100px;
+<!DOCTYPE html> 
+<html lang="pt"> 
+<head> 
+  <meta charset="utf-8"> 
+  <meta name="viewport" content="width=device-width,initial-scale=1"> 
+  <title>Editor RSS FlixTV</title> 
+  <style> 
+    * { 
+      margin: 0; 
+      padding: 0; 
+      box-sizing: border-box; 
+    } 
+    body { 
+      background: #0f0f0f; 
+      color: #fff; 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      overflow-x: hidden; 
+    } 
+    /* Header */ 
+    header { 
+      background: linear-gradient(180deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.7) 100%); 
+      height: 70px; 
+      display: flex; 
+      align-items: center; 
+      justify-content: space-between; 
+      padding: 0 40px; 
+      position: fixed; 
+      width: 100%; 
+      top: 0; 
+      z-index: 1000; 
+      backdrop-filter: blur(10px); 
+      border-bottom: 1px solid #333; 
+    } 
+    header h1 { 
+      font-size: 28px; 
+      font-weight: 700; 
+      letter-spacing: -0.5px; 
+      color: #e50914; 
+      display: flex; 
+      align-items: center; 
+      gap: 10px; 
+    } 
+    .header-controls { 
+      display: flex; 
+      gap: 20px; 
+      align-items: center; 
+    } 
+    .icon-config { 
+      font-size: 24px; 
+      cursor: pointer; 
+      transition: transform 0.2s ease; 
+      padding: 8px; 
+      border-radius: 4px; 
+    } 
+    .icon-config:hover { 
+      transform: scale(1.1); 
+      background: rgba(229, 9, 20, 0.2); 
+    } 
+    /* Main Content */ 
+    main { 
+      padding: 100px 40px 100px; 
+      max-width: 1400px; 
+      margin: 0 auto; 
+    } 
+    /* Tabs */ 
+    .tabs { 
+      display: flex; 
+      gap: 10px; 
+      margin-bottom: 30px; 
+      border-bottom: 1px solid #333; 
+      padding-bottom: 10px; 
+      flex-wrap: wrap; 
+    } 
+    .tab { 
+      padding: 10px 20px; 
+      background: #1a1a1a; 
+      border-radius: 8px 8px 0 0; 
+      cursor: pointer; 
+      transition: all 0.2s ease; 
+      border: 1px solid #333; 
+      border-bottom: none; 
+      user-select: none; 
+      position: relative; 
+    } 
+    .tab.active { 
+      background: #e50914; 
+      color: white; 
+    } 
+    .tab:hover:not(.active) { 
+      background: #333; 
+    } 
+    .tab.dragging { 
+      opacity: 0.7; 
+      transform: scale(0.95); 
+    } 
+    .tab.drag-over { 
+      border: 2px dashed #e50914; 
+    } 
+    .category { 
+      margin-bottom: 60px; 
+    } 
+    .category-header { 
+      display: flex; 
+      align-items: center; 
+      gap: 15px; 
+      margin-bottom: 20px; 
+      padding-bottom: 10px; 
+      border-bottom: 2px solid rgba(229, 9, 20, 0.3); 
+    } 
+    .category-logo { 
+      width: 50px; 
+      height: 50px; 
+      border-radius: 8px; 
+      background: #1a1a1a; 
+      object-fit: cover; 
+      border: 2px solid #e50914; 
+    } 
+    .category h2 { 
+      font-size: 24px; 
+      font-weight: 600; 
+      letter-spacing: -0.5px; 
+    } 
+    /* Content Grid */ 
+    .content-list { 
+      display: grid; 
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); 
+      gap: 20px; 
+      padding-bottom: 10px; 
+    } 
+    .content-card { 
+      background: #1a1a1a; 
+      border-radius: 8px; 
+      overflow: hidden; 
+      position: relative; 
+      cursor: pointer; 
+      transition: all 0.3s ease; 
+      border: 2px solid transparent; 
+      height: 100%; 
+      display: flex; 
+      flex-direction: column; 
+    } 
+    .content-card:hover { 
+      transform: scale(1.05); 
+      border-color: #e50914; 
+      box-shadow: 0 8px 24px rgba(229, 9, 20, 0.3); 
+    } 
+    .cover { 
+      width: 100%; 
+      height: 200px; 
+      object-fit: cover; 
+      background: #0f0f0f; 
+    } 
+    .card-info { 
+      padding: 12px; 
+      flex: 1; 
+      display: flex; 
+      flex-direction: column; 
+    } 
+    .title { 
+      font-weight: 700; 
+      font-size: 14px; 
+      line-height: 1.3; 
+      margin-bottom: 8px; 
+      color: #fff; 
+    } 
+    .desc { 
+      font-size: 12px; 
+      opacity: 0.7; 
+      line-height: 1.4; 
+      flex: 1; 
+      color: #b3b3b3; 
+    } 
+    .edit-btns { 
+      position: absolute; 
+      top: 8px; 
+      right: 8px; 
+      display: flex; 
+      gap: 6px; 
+      opacity: 0; 
+      transition: opacity 0.2s ease; 
+    } 
+    .content-card:hover .edit-btns { 
+      opacity: 1; 
+    } 
+    .btn { 
+      border: none; 
+      border-radius: 50%; 
+      width: 36px; 
+      height: 36px; 
+      font-size: 18px; 
+      cursor: pointer; 
+      transition: all 0.2s ease; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      font-weight: bold; 
+    } 
+    .btn-edit { 
+      background: #2196F3; 
+      color: white; 
+    } 
+    .btn-edit:hover { 
+      background: #1976D2; 
+      transform: scale(1.1); 
+    } 
+    .btn-del { 
+      background: #e50914; 
+      color: white; 
+    } 
+    .btn-del:hover { 
+      background: #c40812; 
+      transform: scale(1.1); 
+    } 
+    /* Footer */ 
+    footer { 
+      position: fixed; 
+      bottom: 30px; 
+      right: 30px; 
+      z-index: 999; 
+    } 
+    #btn-add { 
+      width: 60px; 
+      height: 60px; 
+      border-radius: 50%; 
+      background: #e50914; 
+      border: none; 
+      font-size: 32px; 
+      color: white; 
+      cursor: pointer; 
+      box-shadow: 0 4px 20px rgba(229, 9, 20, 0.5); 
+      transition: all 0.3s ease; 
+      font-weight: bold; 
+    } 
+    #btn-add:hover { 
+      background: #c40812; 
+      transform: scale(1.1); 
+      box-shadow: 0 8px 30px rgba(229, 9, 20, 0.7); 
+    } 
+    /* Botão Carregar M3U */ 
+    #btn-load-m3u { 
+      width: 60px; 
+      height: 60px; 
+      border-radius: 50%; 
+      background: #2196F3; 
+      border: none; 
+      font-size: 24px; 
+      color: white; 
+      cursor: pointer; 
+      box-shadow: 0 4px 20px rgba(33, 150, 243, 0.5); 
+      transition: all 0.3s ease; 
+      font-weight: bold; 
+      position: fixed; 
+      bottom: 110px; 
+      right: 30px; 
+      z-index: 999; 
+    } 
+    #btn-load-m3u:hover { 
+      background: #1976D2; 
+      transform: scale(1.1); 
+      box-shadow: 0 8px 30px rgba(33, 150, 243, 0.7); 
+    } 
+    /* Modal */ 
+    .modal { 
+      display: none; 
+      align-items: center; 
+      justify-content: center; 
+      position: fixed; 
+      top: 0; 
+      left: 0; 
+      width: 100vw; 
+      height: 100vh; 
+      background: rgba(0, 0, 0, 0.9); 
+      z-index: 5000; 
+      backdrop-filter: blur(5px); 
+    } 
+    .modal.active { 
+      display: flex; 
+      animation: fadeIn 0.3s ease; 
+    } 
+    @keyframes fadeIn { 
+      from { opacity: 0; } 
+      to { opacity: 1; } 
+    } 
+    .modal-box { 
+      background: #1a1a1a; 
+      color: #fff; 
+      border-radius: 12px; 
+      padding: 30px; 
+      width: 90vw; 
+      max-width: 500px; 
+      border: 1px solid #333; 
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9); 
+      max-height: 90vh; 
+      overflow-y: auto; 
+      animation: slideUp 0.3s ease; 
+    } 
+    @keyframes slideUp { 
+      from { transform: translateY(20px); opacity: 0; } 
+      to { transform: translateY(0); opacity: 1; } 
+    } 
+    .modal-box h3 { 
+      margin-bottom: 20px; 
+      font-size: 24px; 
+      color: #e50914; 
+    } 
+    /* TMDb Search Results Area */ 
+    #tmdb-results { 
+      margin-top: 15px; 
+      margin-bottom: 20px; 
+      padding: 10px; 
+      background: #0f0f0f; 
+      border-radius: 8px; 
+      border: 1px solid #333; 
+      max-height: 200px; 
+      overflow-y: auto; 
+      display: none; 
+    } 
+    #tmdb-results h4 { 
+      margin-top: 0; 
+      margin-bottom: 10px; 
+      color: #e50914; 
+      font-size: 16px; 
+    } 
+    .result-list { 
+      display: flex; 
+      gap: 10px; 
+      overflow-x: auto; 
+      padding-bottom: 10px; 
+    } 
+    .result-card { 
+      flex-shrink: 0; 
+      width: 80px; 
+      height: 120px; 
+      border-radius: 6px; 
+      overflow: hidden; 
+      cursor: pointer; 
+      transition: all 0.2s ease; 
+      border: 2px solid transparent; 
+      position: relative; 
+    } 
+    .result-card:hover { 
+      border-color: #e50914; 
+      transform: scale(1.05); 
+    } 
+    .result-card img { 
+      width: 100%; 
+      height: 100%; 
+      object-fit: cover; 
+    } 
+    .result-card-info { 
+      position: absolute; 
+      bottom: 0; 
+      left: 0; 
+      right: 0; 
+      background: rgba(0, 0, 0, 0.7); 
+      color: white; 
+      font-size: 10px; 
+      padding: 3px; 
+      text-align: center; 
+      opacity: 0; 
+      transition: opacity 0.2s ease; 
+    } 
+    .result-card:hover .result-card-info { 
+      opacity: 1; 
+    } 
+    .form-group { 
+      margin-bottom: 15px; 
+    } 
+    .form-group label { 
+      display: block; 
+      margin-bottom: 6px; 
+      font-size: 13px; 
+      font-weight: 600; 
+      color: #b3b3b3; 
+      text-transform: uppercase; 
+      letter-spacing: 0.5px; 
+    } 
+    .modal-box input, .modal-box textarea, .modal-box select { 
+      width: 100%; 
+      padding: 12px; 
+      border-radius: 6px; 
+      border: 1px solid #333; 
+      background: #0f0f0f; 
+      color: #fff; 
+      font-family: inherit; 
+      font-size: 14px; 
+      transition: all 0.2s ease; 
+    } 
+    .modal-box input:focus, .modal-box textarea:focus, .modal-box select:focus { 
+      outline: none; 
+      border-color: #e50914; 
+      background: #1a1a1a; 
+      box-shadow: 0 0 0 2px rgba(229, 9, 20, 0.2); 
+    } 
+    .modal-box input:disabled, .modal-box textarea:disabled { 
+      opacity: 0.5; 
+      cursor: not-allowed; 
+    } 
+    .modal-box textarea { 
+      min-height: 100px; 
+      resize: vertical; 
+    } 
+    .modal-buttons { 
+      display: flex; 
+      gap: 10px; 
+      margin-top: 25px; 
+      justify-content: flex-end; 
+    } 
+    .modal-buttons button { 
+      padding: 12px 24px; 
+      border: none; 
+      border-radius: 6px; 
+      font-size: 14px; 
+      font-weight: 600; 
+      cursor: pointer; 
+      transition: all 0.2s ease; 
+      text-transform: uppercase; 
+      letter-spacing: 0.5px; 
+    } 
+    .btn-save { 
+      background: #e50914; 
+      color: white; 
+      flex: 1; 
+    } 
+    .btn-save:hover { 
+      background: #c40812; 
+      transform: translateY(-1px); 
+    } 
+    .btn-cancel { 
+      background: #333; 
+      color: #fff; 
+    } 
+    .btn-cancel:hover { 
+      background: #444; 
+      transform: translateY(-1px); 
+    } 
+    .btn-search { 
+      background: #2196F3; 
+      color: white; 
+      flex: 1; 
+    } 
+    .btn-search:hover { 
+      background: #1976D2; 
+    } 
+    .modal-info { 
+      background: rgba(229, 9, 20, 0.1); 
+      border-left: 3px solid #e50914; 
+      padding: 12px; 
+      border-radius: 4px; 
+      font-size: 13px; 
+      margin-top: 15px; 
+      color: #b3b3b3; 
+    } 
+    /* Loading Spinner */ 
+    .spinner { 
+      display: inline-block; 
+      width: 14px; 
+      height: 14px; 
+      border: 2px solid #333; 
+      border-top-color: #e50914; 
+      border-radius: 50%; 
+      animation: spin 0.8s linear infinite; 
+      margin-left: 8px; 
+    } 
+    @keyframes spin { 
+      to { transform: rotate(360deg); } 
+    } 
+    /* Status Messages */ 
+    .status-message { 
+      padding: 10px; 
+      border-radius: 6px; 
+      margin: 10px 0; 
+      font-size: 14px; 
+      display: none; 
+    } 
+    .status-success { 
+      background: rgba(76, 175, 80, 0.2); 
+      border: 1px solid #4caf50; 
+      color: #4caf50; 
+    } 
+    .status-error { 
+      background: rgba(244, 67, 54, 0.2); 
+      border: 1px solid #f44336; 
+      color: #f44336; 
+    } 
+    .status-warning { 
+      background: rgba(255, 152, 0, 0.2); 
+      border: 1px solid #ff9800; 
+      color: #ff9800; 
+    } 
+    /* Responsive */ 
+    @media (max-width: 1024px) { 
+      main { 
+        padding: 100px 20px 100px; 
+      } 
+      header { 
+        padding: 0 20px; 
+      } 
+      .content-list { 
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); 
+        gap: 15px; 
+      } 
+      .cover { 
+        height: 180px; 
+      } 
+    } 
+    @media (max-width: 768px) { 
+      header h1 { 
+        font-size: 22px; 
+      } 
+      main { 
+        padding: 80px 15px 100px; 
+      } 
+      .content-list { 
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); 
+        gap: 12px; 
+      } 
+      .cover { 
+        height: 160px; 
+      } 
+      .modal-box { 
+        width: 95vw; 
+        padding: 20px; 
+      } 
+      #btn-add { 
+        width: 56px; 
+        height: 56px; 
+        font-size: 28px; 
+      } 
+      #btn-load-m3u { 
+        width: 56px; 
+        height: 56px; 
+        font-size: 20px; 
+        bottom: 100px; 
+      } 
+    } 
+    /* Empty State */ 
+    .empty-state { 
+      text-align: center; 
+      padding: 60px 20px; 
+      color: #666; 
+    } 
+    .empty-state p { 
+      font-size: 16px; 
+    } 
+    /* Loading overlay */ 
+    .loading-overlay { 
+      position: fixed; 
+      top: 0; 
+      left: 0; 
+      width: 100%; 
+      height: 100%; 
+      background: rgba(0, 0, 0, 0.8); 
+      display: none; 
+      align-items: center; 
+      justify-content: center; 
+      z-index: 10000; 
+      flex-direction: column; 
+      gap: 20px; 
+    } 
+    .loading-overlay.active { 
+      display: flex; 
+    } 
+    .loading-text { 
+      color: white; 
+      font-size: 18px; 
+    } 
+    /* Canal logos suggestions */ 
+    #canal-logos-suggestions { 
+      margin-top: 15px; 
+      padding: 10px; 
+      background: #0f0f0f; 
+      border-radius: 8px; 
+      border: 1px solid #333; 
+      display: none; 
+    } 
+    #canal-logos-suggestions h4 { 
+      margin-top: 0; 
+      margin-bottom: 10px; 
+      color: #e50914; 
+      font-size: 14px; 
+    } 
+    #canal-logos-list { 
+      display: grid; 
+      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); 
+      gap: 10px; 
+    } 
+    /* Modal M3U */ 
+    .m3u-content { 
+      max-height: 400px; 
+      overflow-y: auto; 
+      background: #0f0f0f; 
+      border-radius: 8px; 
+      padding: 15px; 
+      margin: 15px 0; 
+      border: 1px solid #333; 
+    } 
+    .m3u-item { 
+      padding: 10px; 
+      margin: 5px 0; 
+      background: #1a1a1a; 
+      border-radius: 6px; 
+      cursor: pointer; 
+      transition: all 0.2s ease; 
+      border: 1px solid transparent; 
+    } 
+    .m3u-item:hover { 
+      border-color: #2196F3; 
+      background: #252525; 
+    } 
+    .m3u-item.selected { 
+      border-color: #e50914; 
+      background: rgba(229, 9, 20, 0.1); 
+    } 
+    .m3u-item-title { 
+      font-weight: bold; 
+      margin-bottom: 5px; 
+      color: #fff; 
+    } 
+    .m3u-item-url { 
+      font-size: 12px; 
+      color: #888; 
+      word-break: break-all; 
+    } 
+    .m3u-category { 
+      margin: 20px 0 10px; 
+      padding-bottom: 5px; 
+      border-bottom: 1px solid #333; 
+      color: #e50914; 
+      font-weight: bold; 
+    } 
+    .action-buttons { 
+      display: flex; 
+      gap: 10px; 
+      margin-top: 10px; 
+    } 
+    .btn-copy { 
+      background: #FF9800; 
+      color: white; 
+      padding: 8px 16px; 
+      border: none; 
+      border-radius: 6px; 
+      cursor: pointer; 
+      font-size: 12px; 
+      flex: 1; 
+    } 
+    .btn-copy:hover { 
+      background: #F57C00; 
+    } 
+    .btn-add-rss { 
+      background: #4CAF50; 
+      color: white; 
+      padding: 8px 16px; 
+      border: none; 
+      border-radius: 6px; 
+      cursor: pointer; 
+      font-size: 12px; 
+      flex: 1; 
+    } 
+    .btn-add-rss:hover { 
+      background: #45a049; 
+    } 
+    /* Export/Import buttons */ 
+    .export-import { 
+      display: flex; 
+      gap: 10px; 
+      margin-bottom: 20px; 
+      flex-wrap: wrap; 
+    } 
+    .export-import button { 
+      padding: 10px 15px; 
+      border: none; 
+      border-radius: 6px; 
+      cursor: pointer; 
+      font-size: 14px; 
+      transition: all 0.2s ease; 
+    } 
+    .btn-export { 
+      background: #4CAF50; 
+      color: white; 
+    } 
+    .btn-export:hover { 
+      background: #45a049; 
+    } 
+    .btn-import { 
+      background: #2196F3; 
+      color: white; 
+    } 
+    .btn-import:hover { 
+      background: #1976D2; 
+    } 
+    .btn-import-rss { 
+      background: #9C27B0; 
+      color: white; 
+    } 
+    .btn-import-rss:hover { 
+      background: #7B1FA2; 
+    } 
+    .btn-download-rss { 
+      background: #FF9800; 
+      color: white; 
+    } 
+    .btn-download-rss:hover { 
+      background: #F57C00; 
+    } 
+    /* Modal de substituição RSS */ 
+    .replace-options { 
+      display: flex; 
+      gap: 10px; 
+      margin-top: 15px; 
+    } 
+    .replace-options button { 
+      flex: 1; 
+      padding: 10px; 
+      border: none; 
+      border-radius: 6px; 
+      cursor: pointer; 
+      font-weight: bold; 
+    } 
+    .btn-replace { 
+      background: #e50914; 
+      color: white; 
+    } 
+    .btn-replace:hover { 
+      background: #c40812; 
+    } 
+    .btn-merge { 
+      background: #2196F3; 
+      color: white; 
+    } 
+    .btn-merge:hover { 
+      background: #1976D2; 
+    } 
+    /* Modal de Download RSS */ 
+    .download-options { 
+      display: flex; 
+      gap: 10px; 
+      margin-top: 15px; 
+    } 
+    .download-options button { 
+      flex: 1; 
+      padding: 12px; 
+      border: none; 
+      border-radius: 6px; 
+      cursor: pointer; 
+      font-weight: bold; 
+      transition: all 0.2s ease; 
+    } 
+    .btn-download-local { 
+      background: #4CAF50; 
+      color: white; 
+    } 
+    .btn-download-local:hover { 
+      background: #45a049; 
+    } 
+    .btn-download-github { 
+      background: #333; 
+      color: white; 
+    } 
+    .btn-download-github:hover { 
+      background: #555; 
+    } 
+    .github-status { 
+      margin-top: 10px; 
+      padding: 8px; 
+      border-radius: 4px; 
+      font-size: 12px; 
+      display: none; 
+    } 
+    .github-success { 
+      background: rgba(76, 175, 80, 0.2); 
+      border: 1px solid #4caf50; 
+      color: #4caf50; 
+    } 
+    .github-error { 
+      background: rgba(244, 67, 54, 0.2); 
+      border: 1px solid #f44336; 
+      color: #f44336; 
+    } 
+    /* Campo de entrada do token GitHub */ 
+    .github-token-input { 
+      margin-top: 15px; 
+    } 
+    .github-token-input input { 
+      width: 100%; 
+      padding: 10px; 
+      border-radius: 6px; 
+      border: 1px solid #333; 
+      background: #0f0f0f; 
+      color: #fff; 
+      font-family: inherit; 
+      font-size: 12px; 
+    } 
+    .github-token-input input:focus { 
+      outline: none; 
+      border-color: #2196F3; 
+    } 
+    .token-instructions { 
+      background: rgba(33, 150, 243, 0.1); 
+      border-left: 3px solid #2196F3; 
+      padding: 10px; 
+      border-radius: 4px; 
+      font-size: 12px; 
+      margin-top: 10px; 
+      color: #b3b3b3; 
+    } 
+  </style> 
+</head> 
+<body> 
+  <header> 
+    <h1>🎬 Editor RSS FlixTV</h1> 
+    <div class="header-controls"> 
+      <span class="icon-config" onclick="openExportModal()" title="Exportar/Importar">📤</span> 
+    </div> 
+  </header> 
+  <main> 
+    <div class="tabs" id="tabs-container"> 
+      <div class="tab active" data-tab="home" draggable="true">Home</div> 
+      <div class="tab" data-tab="canais" draggable="true">Canais</div> 
+      <div class="tab" data-tab="filmes" draggable="true">Filmes</div> 
+      <div class="tab" data-tab="series" draggable="true">Séries</div> 
+    </div> 
+    <div class="export-import"> 
+      <button class="btn-export" onclick="exportData()">Exportar Dados</button> 
+      <button class="btn-import" onclick="document.getElementById('import-file').click()">Importar JSON</button> 
+      <button class="btn-import-rss" onclick="document.getElementById('import-rss-file').click()">Importar RSS</button> 
+      <button class="btn-download-rss" onclick="openDownloadModal()">Download RSS</button> 
+      <input type="file" id="import-file" accept=".json" style="display: none" onchange="importData(event)"> 
+      <input type="file" id="import-rss-file" accept=".rss,.xml" style="display: none" onchange="importRSSData(event)"> 
+    </div> 
+    <div id="categories-container"> 
+      <div class="empty-state"> 
+        <p>Carregando conteúdo...</p> 
+      </div> 
+    </div> 
+  </main> 
+  <footer> 
+    <button id="btn-load-m3u" onclick="openM3UModal()" title="Carregar Arquivo M3U">📺</button> 
+    <button id="btn-add" onclick="openModal()">+</button> 
+  </footer> 
+  <!-- Loading Overlay --> 
+  <div class="loading-overlay" id="loading-overlay"> 
+    <div class="spinner" style="width: 40px; height: 40px;"></div> 
+    <div class="loading-text" id="loading-text">Processando...</div> 
+  </div> 
+  <!-- Status Message --> 
+  <div class="status-message" id="status-message"></div> 
+  <!-- Modal de inserção/edição --> 
+  <div class="modal" id="modal-form"> 
+    <div class="modal-box"> 
+      <h3 id="modal-title">Adicionar Conteúdo</h3> 
+      <div class="form-group"> 
+        <label for="input-title">Título</label> 
+        <input type="text" id="input-title" placeholder="Digite o título do conteúdo" required oninput="buscarConteudoTMDbAoDigitar(); validarCanalLogo()" /> 
+        <div id="search-status" style="font-size: 12px; color: #888; margin-top: 5px; min-height: 16px;"></div> 
+      </div> 
+      <!-- Área de Resultados da Busca TMDb --> 
+      <div id="tmdb-results"> 
+        <h4>Resultados da Busca (Clique para selecionar)</h4> 
+        <div class="result-list" id="tmdb-result-list"></div> 
+      </div> 
+      <!-- Sugestões Logos Canais --> 
+      <div id="canal-logos-suggestions"> 
+        <h4>Logos de Canais Disponíveis</h4> 
+        <div id="canal-logos-list"></div> 
+      </div> 
+      <div class="form-group"> 
+        <label for="input-category">Categoria</label> 
+        <select id="input-category" required> 
+          <option value="">Selecione uma categoria</option> 
+          <!-- Categorias de Home --> 
+          <optgroup label="Home"> 
+            <option value="Destaques">Destaques</option> 
+            <option value="Recomendados">Recomendados</option> 
+            <option value="Populares">Populares</option> 
+            <option value="Novidades">Novidades</option> 
+          </optgroup> 
+          <!-- Categorias de Canais --> 
+          <optgroup label="Canais"> 
+            <option value="Aberta">Aberta</option> 
+            <option value="Filmes_Séries">Filmes e Séries</option> 
+            <option value="Documentários">Documentários</option> 
+            <option value="Esportes">Esportes</option> 
+            <option value="Notícias">Notícias</option> 
+            <option value="Infantil">Infantil</option> 
+            <option value="Variedades">Variedades</option> 
+          </optgroup> 
+          <!-- Categorias de Filmes --> 
+          <optgroup label="Filmes"> 
+            <option value="Animação">Animação</option> 
+            <option value="Drama_Comédia">Drama/Comédia</option> 
+            <option value="Terror">Terror</option> 
+            <option value="Suspense">Suspense</option> 
+            <option value="Romance">Romance</option> 
+            <option value="Família">Família</option> 
+            <option value="Infantil">Infantil</option> 
+            <option value="Animes">Animes</option> 
+            <option value="Aventura_Ação">Aventura/Ação</option> 
+            <option value="Fantasia">Fantasia</option> 
+            <option value="Ficção_Científica">Ficção Científica</option> 
+            <option value="Lançamentos_2025">Lançamentos 2025</option> 
+            <option value="Em_Cartaz">Em Cartaz</option> 
+          </optgroup> 
+          <!-- Categorias de Séries --> 
+          <optgroup label="Séries"> 
+            <option value="Drama">Drama</option> 
+            <option value="Comédia">Comédia</option> 
+            <option value="Ação">Ação</option> 
+            <option value="Suspense">Suspense</option> 
+            <option value="Ficção_Científica">Ficção Científica</option> 
+            <option value="Fantasia">Fantasia</option> 
+            <option value="Terror">Terror</option> 
+            <option value="Animes">Animes</option> 
+            <option value="Nacionais">Nacionais</option> 
+            <option value="Internacionais">Internacionais</option> 
+          </optgroup> 
+        </select> 
+      </div> 
+      <div class="form-group"> 
+        <label for="input-logo">URL do Logo/Pôster ou Nome do Canal</label> 
+        <input type="text" id="input-logo" placeholder="URL da imagem ou nome do canal" required /> 
+        <div id="canal-suggestions" style="font-size: 12px; color: #888; margin-top: 5px;"> 
+          💡 <strong>Dica:</strong> Digite o nome do canal (ex: sbt, globo) para usar a API de logos automática! 
+        </div> 
+      </div> 
+      <div class="form-group"> 
+        <label for="input-link">URL do Conteúdo</label> 
+        <input type="url" id="input-link" placeholder="Link para o vídeo ou streaming" required /> 
+      </div> 
+      <div class="form-group"> 
+        <label for="input-description">Descrição</label> 
+        <textarea id="input-description" placeholder="Descrição do conteúdo"></textarea> 
+      </div> 
+      <div class="modal-buttons"> 
+        <button class="btn-save" onclick="salvarItem()" id="btn-save"> 
+          <span id="btn-save-text">Salvar</span> 
+          <span class="spinner" id="btn-save-spinner" style="display: none;"></span> 
+        </button> 
+        <button class="btn-cancel" onclick="closeModal()">Cancelar</button> 
+      </div> 
+      <div class="modal-info"> 
+        💡 <strong>Dica:</strong> Digite o título e a logo e descrição serão preenchidas automaticamente do TMDb! 
+      </div> 
+    </div> 
+  </div> 
+  <!-- Modal do M3U --> 
+  <div class="modal" id="modal-m3u"> 
+    <div class="modal-box" style="max-width: 800px;"> 
+      <h3>📺 Carregar Arquivo M3U</h3> 
+      <div class="form-group"> 
+        <label for="m3u-file">Selecione o arquivo M3U (M3.m3u)</label> 
+        <input type="file" id="m3u-file" accept=".m3u,.m3u8" /> 
+      </div> 
+      <div class="m3u-content" id="m3u-content" style="display: none;"> 
+        <div class="m3u-category" id="m3u-category-title">Canais Carregados</div> 
+        <div id="m3u-items-list"></div> 
+      </div> 
+      <div class="modal-buttons"> 
+        <button class="btn-cancel" onclick="closeM3UModal()">Fechar</button> 
+      </div> 
+      <div class="modal-info"> 
+        💡 <strong>Instruções:</strong> Selecione o arquivo M3.m3u para carregar Canais Ao Vivo, Filmes e Séries automaticamente. 
+      </div> 
+    </div> 
+  </div> 
+  <!-- Modal de Exportação --> 
+  <div class="modal" id="modal-export"> 
+    <div class="modal-box"> 
+      <h3>📤 Exportar/Importar Dados</h3> 
+      <div class="form-group"> 
+        <label>Exportar Dados</label> 
+        <div class="modal-buttons"> 
+          <button class="btn-export" onclick="exportToFile('home')">Exportar Home</button> 
+          <button class="btn-export" onclick="exportToFile('canais')">Exportar Canais</button> 
+          <button class="btn-export" onclick="exportToFile('filmes')">Exportar Filmes</button> 
+          <button class="btn-export" onclick="exportToFile('series')">Exportar Séries</button> 
+        </div> 
+      </div> 
+      <div class="form-group"> 
+        <label>Importar Dados</label> 
+        <div class="modal-buttons"> 
+          <button class="btn-import" onclick="document.getElementById('import-home').click()">Importar Home</button> 
+          <button class="btn-import" onclick="document.getElementById('import-canais').click()">Importar Canais</button> 
+          <button class="btn-import" onclick="document.getElementById('import-filmes').click()">Importar Filmes</button> 
+          <button class="btn-import" onclick="document.getElementById('import-series').click()">Importar Séries</button> 
+        </div> 
+        <input type="file" id="import-home" accept=".json" style="display: none" onchange="importFromFile(event, 'home')"> 
+        <input type="file" id="import-canais" accept=".json" style="display: none" onchange="importFromFile(event, 'canais')"> 
+        <input type="file" id="import-filmes" accept=".json" style="display: none" onchange="importFromFile(event, 'filmes')"> 
+        <input type="file" id="import-series" accept=".json" style="display: none" onchange="importFromFile(event, 'series')"> 
+      </div> 
+      <div class="modal-buttons"> 
+        <button class="btn-cancel" onclick="closeExportModal()">Fechar</button> 
+      </div> 
+      <div class="modal-info"> 
+        💡 <strong>Nota:</strong> Os dados são salvos localmente no seu dispositivo. Use exportação/importação para fazer backup ou transferir para outro dispositivo. 
+      </div> 
+    </div> 
+  </div> 
+  <!-- Modal de Substituição RSS --> 
+  <div class="modal" id="modal-replace-rss"> 
+    <div class="modal-box"> 
+      <h3>🔄 Importar RSS</h3> 
+      <div class="form-group"> 
+        <label>Como deseja importar o arquivo RSS?</label> 
+        <p>O arquivo contém <span id="rss-item-count">0</span> itens.</p> 
+      </div> 
+      <div class="replace-options"> 
+        <button class="btn-replace" onclick="replaceRSSData()">Substituir Tudo</button> 
+        <button class="btn-merge" onclick="mergeRSSData()">Adicionar aos Existentes</button> 
+      </div> 
+      <div class="modal-buttons"> 
+        <button class="btn-cancel" onclick="closeReplaceRSSModal()">Cancelar</button> 
+      </div> 
+      <div class="modal-info"> 
+        💡 <strong>Substituir Tudo:</strong> Remove todos os itens atuais e adiciona apenas os do arquivo.<br> 
+        💡 <strong>Adicionar aos Existentes:</strong> Mantém os itens atuais e adiciona os do arquivo. 
+      </div> 
+    </div> 
+  </div> 
+  <!-- Modal de Download RSS --> 
+  <div class="modal" id="modal-download-rss"> 
+    <div class="modal-box"> 
+      <h3>📥 Download RSS</h3> 
+      <div class="form-group"> 
+        <label>Escolha como deseja salvar o arquivo RSS:</label> 
+        <p>Arquivo: <strong id="download-filename">FlixHome.rss</strong></p> 
+      </div> 
+      <div class="download-options"> 
+        <button class="btn-download-local" onclick="downloadRSSLocal()">📥 Download Local</button> 
+        <button class="btn-download-github" onclick="uploadToGitHub()">🚀 Enviar para GitHub</button> 
+      </div> 
+      <div class="github-token-input"> 
+        <label for="github-token">Token GitHub (obrigatório):</label> 
+        <input type="password" id="github-token" placeholder="Cole seu token GitHub pessoal aqui" /> 
+      </div> 
+      <div class="token-instructions"> 
+        💡 <strong>Como obter um token:</strong><br> 
+        1. Acesse GitHub.com → Settings → Developer settings → Personal access tokens<br> 
+        2. Crie um novo token com permissões <strong>repo</strong> (full control of private repositories)<br> 
+        3. Cole o token acima 
+      </div> 
+      <div class="github-status" id="github-status"></div> 
+      <div class="modal-buttons"> 
+        <button class="btn-cancel" onclick="closeDownloadModal()">Fechar</button> 
+      </div> 
+      <div class="modal-info"> 
+        💡 <strong>Download Local:</strong> Baixa o arquivo para seu dispositivo.<br> 
+        💡 <strong>Enviar para GitHub:</strong> Faz upload direto para o repositório ROKU. 
+      </div> 
+    </div> 
+  </div> 
+  <script> 
+    // Configurações 
+    const TMDB_API_KEY = '0dea6057249cfc73c2758f6166eb0d6f'; 
+    const TMDB_BASE_URL = 'https://api.themoviedb.org/3'; 
+    const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500'; 
+    const CANAL_LOGO_BASE_URL = 'https://api.reidoscanais.io/img/'; 
+    // Configurações do GitHub 
+    const GITHUB_REPO = 'Fu6rfho5zf/ROKU'; 
+    const GITHUB_BASE_URL = 'https://api.github.com'; 
+    
+    // Estado da aplicação 
+    let currentTab = 'home'; 
+    let editingGuid = null; 
+    let rssItems = { home: [], canais: [], filmes: [], series: [] }; 
+    let searchTimeout = null; 
+    let lastSearchTerm = ''; 
+    let m3uItems = []; 
+    let selectedM3UItem = null; 
+    let pendingRSSData = null; 
+    let pendingRSSFileName = ''; 
+    
+    // Ordem das abas (salva no localStorage)
+    let tabOrder = ['home', 'canais', 'filmes', 'series'];
+    
+    const categoriesContainer = document.getElementById('categories-container'); 
+    const statusMessage = document.getElementById('status-message'); 
+    const loadingOverlay = document.getElementById('loading-overlay'); 
+    const tabsContainer = document.getElementById('tabs-container');
+    
+    // Inicialização 
+    document.addEventListener('DOMContentLoaded', function() { 
+      // Carregar ordem das abas do localStorage
+      const savedTabOrder = localStorage.getItem('flixTvTabOrder');
+      if (savedTabOrder) {
+        try {
+          tabOrder = JSON.parse(savedTabOrder);
+        } catch (e) {
+          console.error('Erro ao carregar ordem das abas:', e);
+        }
       }
-
-      header {
-        padding: 0 20px;
-      }
-
-      .content-list {
-        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-        gap: 15px;
-      }
-
-      .cover {
-        height: 180px;
-      }
-    }
-
-    @media (max-width: 768px) {
-      header h1 {
-        font-size: 22px;
-      }
-
-      main {
-        padding: 80px 15px 100px;
-      }
-
-      .content-list {
-        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-        gap: 12px;
-      }
-
-      .cover {
-        height: 160px;
-      }
-
-      .modal-box {
-        width: 95vw;
-        padding: 20px;
-      }
-
-      #btn-add {
-        width: 56px;
-        height: 56px;
-        font-size: 28px;
-      }
-
-      #btn-load-m3u {
-        width: 56px;
-        height: 56px;
-        font-size: 20px;
-        bottom: 100px;
-      }
-    }
-
-    /* Empty State */
-    .empty-state {
-      text-align: center;
-      padding: 60px 20px;
-      color: #666;
-    }
-
-    .empty-state p {
-      font-size: 16px;
-    }
-
-    /* Loading overlay */
-    .loading-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.8);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 10000;
-      flex-direction: column;
-      gap: 20px;
-    }
-
-    .loading-overlay.active {
-      display: flex;
-    }
-
-    .loading-text {
-      color: white;
-      font-size: 18px;
-    }
-
-    /* Canal logos suggestions */
-    #canal-logos-suggestions {
-      margin-top: 15px;
-      padding: 10px;
-      background: #0f0f0f;
-      border-radius: 8px;
-      border: 1px solid #333;
-      display: none;
-    }
-
-    #canal-logos-suggestions h4 {
-      margin-top: 0;
-      margin-bottom: 10px;
-      color: #e50914;
-      font-size: 14px;
-    }
-
-    #canal-logos-list {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-      gap: 10px;
-    }
-
-    /* Modal M3U */
-    .m3u-content {
-      max-height: 400px;
-      overflow-y: auto;
-      background: #0f0f0f;
-      border-radius: 8px;
-      padding: 15px;
-      margin: 15px 0;
-      border: 1px solid #333;
-    }
-
-    .m3u-item {
-      padding: 10px;
-      margin: 5px 0;
-      background: #1a1a1a;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      border: 1px solid transparent;
-    }
-
-    .m3u-item:hover {
-      border-color: #2196F3;
-      background: #252525;
-    }
-
-    .m3u-item.selected {
-      border-color: #e50914;
-      background: rgba(229, 9, 20, 0.1);
-    }
-
-    .m3u-item-title {
-      font-weight: bold;
-      margin-bottom: 5px;
-      color: #fff;
-    }
-
-    .m3u-item-url {
-      font-size: 12px;
-      color: #888;
-      word-break: break-all;
-    }
-
-    .m3u-category {
-      margin: 20px 0 10px;
-      padding-bottom: 5px;
-      border-bottom: 1px solid #333;
-      color: #e50914;
-      font-weight: bold;
-    }
-
-    .action-buttons {
-      display: flex;
-      gap: 10px;
-      margin-top: 10px;
-    }
-
-    .btn-copy {
-      background: #FF9800;
-      color: white;
-      padding: 8px 16px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 12px;
-      flex: 1;
-    }
-
-    .btn-copy:hover {
-      background: #F57C00;
-    }
-
-    .btn-add-rss {
-      background: #4CAF50;
-      color: white;
-      padding: 8px 16px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 12px;
-      flex: 1;
-    }
-
-    .btn-add-rss:hover {
-      background: #45a049;
-    }
-
-    /* Export/Import buttons */
-    .export-import {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
-    }
-
-    .export-import button {
-      padding: 10px 15px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 14px;
-      transition: all 0.2s ease;
-    }
-
-    .btn-export {
-      background: #4CAF50;
-      color: white;
-    }
-
-    .btn-export:hover {
-      background: #45a049;
-    }
-
-    .btn-import {
-      background: #2196F3;
-      color: white;
-    }
-
-    .btn-import:hover {
-      background: #1976D2;
-    }
-
-    .btn-import-rss {
-      background: #9C27B0;
-      color: white;
-    }
-
-    .btn-import-rss:hover {
-      background: #7B1FA2;
-    }
-
-    .btn-download-rss {
-      background: #FF9800;
-      color: white;
-    }
-
-    .btn-download-rss:hover {
-      background: #F57C00;
-    }
+      
+      // Reordenar as abas conforme salvo
+      reorderTabs();
+      
+      // Configurar tabs 
+      document.querySelectorAll('.tab').forEach(tab => { 
+        tab.addEventListener('click', function() { 
+          document.querySelectorAll('.tab').forEach(t => t.classList.remove('active')); 
+          this.classList.add('active'); 
+          currentTab = this.dataset.tab; 
+          fetchAndRender(); 
+        }); 
+        
+        // Adicionar eventos de drag and drop
+        setupDragAndDrop(tab);
+      }); 
+      
+      // Carregar dados salvos 
+      loadData(); 
+      fetchAndRender(); 
+    }); 
     
-    /* Modal de substituição RSS */
-    .replace-options {
-      display: flex;
-      gap: 10px;
-      margin-top: 15px;
-    }
-    
-    .replace-options button {
-      flex: 1;
-      padding: 10px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-    
-    .btn-replace {
-      background: #e50914;
-      color: white;
-    }
-    
-    .btn-replace:hover {
-      background: #c40812;
-    }
-    
-    .btn-merge {
-      background: #2196F3;
-      color: white;
-    }
-    
-    .btn-merge:hover {
-      background: #1976D2;
-    }
-
-    /* Modal de Download RSS */
-    .download-options {
-      display: flex;
-      gap: 10px;
-      margin-top: 15px;
-    }
-    
-    .download-options button {
-      flex: 1;
-      padding: 12px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: bold;
-      transition: all 0.2s ease;
-    }
-    
-    .btn-download-local {
-      background: #4CAF50;
-      color: white;
-    }
-    
-    .btn-download-local:hover {
-      background: #45a049;
-    }
-    
-    .btn-download-github {
-      background: #333;
-      color: white;
-    }
-    
-    .btn-download-github:hover {
-      background: #555;
-    }
-    
-    .github-status {
-      margin-top: 10px;
-      padding: 8px;
-      border-radius: 4px;
-      font-size: 12px;
-      display: none;
-    }
-    
-    .github-success {
-      background: rgba(76, 175, 80, 0.2);
-      border: 1px solid #4caf50;
-      color: #4caf50;
-    }
-    
-    .github-error {
-      background: rgba(244, 67, 54, 0.2);
-      border: 1px solid #f44336;
-      color: #f44336;
-    }
-
-    /* Campo de entrada do token GitHub */
-    .github-token-input {
-      margin-top: 15px;
-    }
-    
-    .github-token-input input {
-      width: 100%;
-      padding: 10px;
-      border-radius: 6px;
-      border: 1px solid #333;
-      background: #0f0f0f;
-      color: #fff;
-      font-family: inherit;
-      font-size: 12px;
-    }
-    
-    .github-token-input input:focus {
-      outline: none;
-      border-color: #2196F3;
-    }
-
-    .token-instructions {
-      background: rgba(33, 150, 243, 0.1);
-      border-left: 3px solid #2196F3;
-      padding: 10px;
-      border-radius: 4px;
-      font-size: 12px;
-      margin-top: 10px;
-      color: #b3b3b3;
-    }
-  </style>
-</head>
-<body>
-<header>
-  <h1>🎬 Editor RSS FlixTV</h1>
-  <div class="header-controls">
-    <span class="icon-config" onclick="openExportModal()" title="Exportar/Importar">📤</span>
-  </div>
-</header>
-
-<main>
-  <div class="tabs">
-    <div class="tab active" data-tab="home">Home</div>
-    <div class="tab" data-tab="canais">Canais</div>
-    <div class="tab" data-tab="filmes">Filmes</div>
-    <div class="tab" data-tab="series">Séries</div>
-  </div>
-
-  <div class="export-import">
-    <button class="btn-export" onclick="exportData()">Exportar Dados</button>
-    <button class="btn-import" onclick="document.getElementById('import-file').click()">Importar JSON</button>
-    <button class="btn-import-rss" onclick="document.getElementById('import-rss-file').click()">Importar RSS</button>
-    <button class="btn-download-rss" onclick="openDownloadModal()">Download RSS</button>
-    <input type="file" id="import-file" accept=".json" style="display: none" onchange="importData(event)">
-    <input type="file" id="import-rss-file" accept=".rss,.xml" style="display: none" onchange="importRSSData(event)">
-  </div>
-
-  <div id="categories-container">
-    <div class="empty-state">
-      <p>Carregando conteúdo...</p>
-    </div>
-  </div>
-</main>
-
-<footer>
-  <button id="btn-load-m3u" onclick="openM3UModal()" title="Carregar Arquivo M3U">📺</button>
-  <button id="btn-add" onclick="openModal()">+</button>
-</footer>
-
-<!-- Loading Overlay -->
-<div class="loading-overlay" id="loading-overlay">
-  <div class="spinner" style="width: 40px; height: 40px;"></div>
-  <div class="loading-text" id="loading-text">Processando...</div>
-</div>
-
-<!-- Status Message -->
-<div class="status-message" id="status-message"></div>
-
-<!-- Modal de inserção/edição -->
-<div class="modal" id="modal-form">
-  <div class="modal-box">
-    <h3 id="modal-title">Adicionar Conteúdo</h3>
-    
-    <div class="form-group">
-      <label for="input-title">Título</label>
-      <input type="text" id="input-title" placeholder="Digite o título do conteúdo" required 
-             oninput="buscarConteudoTMDbAoDigitar(); validarCanalLogo()" />
-      <div id="search-status" style="font-size: 12px; color: #888; margin-top: 5px; min-height: 16px;"></div>
-    </div>
-
-    <!-- Área de Resultados da Busca TMDb -->
-    <div id="tmdb-results">
-      <h4>Resultados da Busca (Clique para selecionar)</h4>
-      <div class="result-list" id="tmdb-result-list"></div>
-    </div>
-
-    <!-- Sugestões Logos Canais -->
-    <div id="canal-logos-suggestions">
-      <h4>Logos de Canais Disponíveis</h4>
-      <div id="canal-logos-list"></div>
-    </div>
-
-    <div class="form-group">
-      <label for="input-category">Categoria</label>
-      <select id="input-category" required>
-        <option value="">Selecione uma categoria</option>
-        <!-- Categorias de Home -->
-        <optgroup label="Home">
-          <option value="Destaques">Destaques</option>
-          <option value="Recomendados">Recomendados</option>
-          <option value="Populares">Populares</option>
-          <option value="Novidades">Novidades</option>
-        </optgroup>
-        <!-- Categorias de Canais -->
-        <optgroup label="Canais">
-          <option value="Aberta">Aberta</option>
-          <option value="Filmes_Séries">Filmes e Séries</option>
-          <option value="Documentários">Documentários</option>
-          <option value="Esportes">Esportes</option>
-          <option value="Notícias">Notícias</option>
-          <option value="Infantil">Infantil</option>
-          <option value="Variedades">Variedades</option>
-        </optgroup>
-        <!-- Categorias de Filmes -->
-        <optgroup label="Filmes">
-          <option value="Animação">Animação</option>
-          <option value="Drama_Comédia">Drama/Comédia</option>
-          <option value="Terror">Terror</option>
-          <option value="Suspense">Suspense</option>
-          <option value="Romance">Romance</option>
-          <option value="Família">Família</option>
-          <option value="Infantil">Infantil</option>
-          <option value="Animes">Animes</option>
-          <option value="Aventura_Ação">Aventura/Ação</option>
-          <option value="Fantasia">Fantasia</option>
-          <option value="Ficção_Científica">Ficção Científica</option>
-          <option value="Lançamentos_2025">Lançamentos 2025</option>
-          <option value="Em_Cartaz">Em Cartaz</option>
-        </optgroup>
-        <!-- Categorias de Séries -->
-        <optgroup label="Séries">
-          <option value="Drama">Drama</option>
-          <option value="Comédia">Comédia</option>
-          <option value="Ação">Ação</option>
-          <option value="Suspense">Suspense</option>
-          <option value="Ficção_Científica">Ficção Científica</option>
-          <option value="Fantasia">Fantasia</option>
-          <option value="Terror">Terror</option>
-          <option value="Animes">Animes</option>
-          <option value="Nacionais">Nacionais</option>
-          <option value="Internacionais">Internacionais</option>
-        </optgroup>
-      </select>
-    </div>
-
-    <div class="form-group">
-      <label for="input-logo">URL do Logo/Pôster ou Nome do Canal</label>
-      <input type="text" id="input-logo" placeholder="URL da imagem ou nome do canal" required />
-      <div id="canal-suggestions" style="font-size: 12px; color: #888; margin-top: 5px;">
-        💡 <strong>Dica:</strong> Digite o nome do canal (ex: sbt, globo) para usar a API de logos automática!
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label for="input-link">URL do Conteúdo</label>
-      <input type="url" id="input-link" placeholder="Link para o vídeo ou streaming" required />
-    </div>
-
-    <div class="form-group">
-      <label for="input-description">Descrição</label>
-      <textarea id="input-description" placeholder="Descrição do conteúdo"></textarea>
-    </div>
-
-    <div class="modal-buttons">
-      <button class="btn-save" onclick="salvarItem()" id="btn-save">
-        <span id="btn-save-text">Salvar</span>
-        <span class="spinner" id="btn-save-spinner" style="display: none;"></span>
-      </button>
-      <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
-    </div>
-
-    <div class="modal-info">
-      💡 <strong>Dica:</strong> Digite o título e a logo e descrição serão preenchidas automaticamente do TMDb!
-    </div>
-  </div>
-</div>
-
-<!-- Modal do M3U -->
-<div class="modal" id="modal-m3u">
-  <div class="modal-box" style="max-width: 800px;">
-    <h3>📺 Carregar Arquivo M3U</h3>
-    
-    <div class="form-group">
-      <label for="m3u-file">Selecione o arquivo M3U (M3.m3u)</label>
-      <input type="file" id="m3u-file" accept=".m3u,.m3u8" />
-    </div>
-
-    <div class="m3u-content" id="m3u-content" style="display: none;">
-      <div class="m3u-category" id="m3u-category-title">Canais Carregados</div>
-      <div id="m3u-items-list"></div>
-    </div>
-
-    <div class="modal-buttons">
-      <button class="btn-cancel" onclick="closeM3UModal()">Fechar</button>
-    </div>
-
-    <div class="modal-info">
-      💡 <strong>Instruções:</strong> Selecione o arquivo M3.m3u para carregar Canais Ao Vivo, Filmes e Séries automaticamente.
-    </div>
-  </div>
-</div>
-
-<!-- Modal de Exportação -->
-<div class="modal" id="modal-export">
-  <div class="modal-box">
-    <h3>📤 Exportar/Importar Dados</h3>
-    
-    <div class="form-group">
-      <label>Exportar Dados</label>
-      <div class="modal-buttons">
-        <button class="btn-export" onclick="exportToFile('home')">Exportar Home</button>
-        <button class="btn-export" onclick="exportToFile('canais')">Exportar Canais</button>
-        <button class="btn-export" onclick="exportToFile('filmes')">Exportar Filmes</button>
-        <button class="btn-export" onclick="exportToFile('series')">Exportar Séries</button>
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label>Importar Dados</label>
-      <div class="modal-buttons">
-        <button class="btn-import" onclick="document.getElementById('import-home').click()">Importar Home</button>
-        <button class="btn-import" onclick="document.getElementById('import-canais').click()">Importar Canais</button>
-        <button class="btn-import" onclick="document.getElementById('import-filmes').click()">Importar Filmes</button>
-        <button class="btn-import" onclick="document.getElementById('import-series').click()">Importar Séries</button>
-      </div>
-      <input type="file" id="import-home" accept=".json" style="display: none" onchange="importFromFile(event, 'home')">
-      <input type="file" id="import-canais" accept=".json" style="display: none" onchange="importFromFile(event, 'canais')">
-      <input type="file" id="import-filmes" accept=".json" style="display: none" onchange="importFromFile(event, 'filmes')">
-      <input type="file" id="import-series" accept=".json" style="display: none" onchange="importFromFile(event, 'series')">
-    </div>
-
-    <div class="modal-buttons">
-      <button class="btn-cancel" onclick="closeExportModal()">Fechar</button>
-    </div>
-
-    <div class="modal-info">
-      💡 <strong>Nota:</strong> Os dados são salvos localmente no seu dispositivo. Use exportação/importação para fazer backup ou transferir para outro dispositivo.
-    </div>
-  </div>
-</div>
-
-<!-- Modal de Substituição RSS -->
-<div class="modal" id="modal-replace-rss">
-  <div class="modal-box">
-    <h3>🔄 Importar RSS</h3>
-    
-    <div class="form-group">
-      <label>Como deseja importar o arquivo RSS?</label>
-      <p>O arquivo contém <span id="rss-item-count">0</span> itens.</p>
-    </div>
-
-    <div class="replace-options">
-      <button class="btn-replace" onclick="replaceRSSData()">Substituir Tudo</button>
-      <button class="btn-merge" onclick="mergeRSSData()">Adicionar aos Existentes</button>
-    </div>
-
-    <div class="modal-buttons">
-      <button class="btn-cancel" onclick="closeReplaceRSSModal()">Cancelar</button>
-    </div>
-
-    <div class="modal-info">
-      💡 <strong>Substituir Tudo:</strong> Remove todos os itens atuais e adiciona apenas os do arquivo.<br>
-      💡 <strong>Adicionar aos Existentes:</strong> Mantém os itens atuais e adiciona os do arquivo.
-    </div>
-  </div>
-</div>
-
-<!-- Modal de Download RSS -->
-<div class="modal" id="modal-download-rss">
-  <div class="modal-box">
-    <h3>📥 Download RSS</h3>
-    
-    <div class="form-group">
-      <label>Escolha como deseja salvar o arquivo RSS:</label>
-      <p>Arquivo: <strong id="download-filename">FlixHome.rss</strong></p>
-    </div>
-
-    <div class="download-options">
-      <button class="btn-download-local" onclick="downloadRSSLocal()">📥 Download Local</button>
-      <button class="btn-download-github" onclick="uploadToGitHub()">🚀 Enviar para GitHub</button>
-    </div>
-
-    <div class="github-token-input">
-      <label for="github-token">Token GitHub (obrigatório):</label>
-      <input type="password" id="github-token" placeholder="Cole seu token GitHub pessoal aqui" />
-    </div>
-
-    <div class="token-instructions">
-      💡 <strong>Como obter um token:</strong><br>
-      1. Acesse GitHub.com → Settings → Developer settings → Personal access tokens<br>
-      2. Crie um novo token com permissões <strong>repo</strong> (full control of private repositories)<br>
-      3. Cole o token acima
-    </div>
-
-    <div class="github-status" id="github-status"></div>
-
-    <div class="modal-buttons">
-      <button class="btn-cancel" onclick="closeDownloadModal()">Fechar</button>
-    </div>
-
-    <div class="modal-info">
-      💡 <strong>Download Local:</strong> Baixa o arquivo para seu dispositivo.<br>
-      💡 <strong>Enviar para GitHub:</strong> Faz upload direto para o repositório ROKU.
-    </div>
-  </div>
-</div>
-
-<script>
-  // Configurações
-  const TMDB_API_KEY = '0dea6057249cfc73c2758f6166eb0d6f';
-  const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
-  const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500';
-  const CANAL_LOGO_BASE_URL = 'https://api.reidoscanais.io/img/';
-
-  // Configurações do GitHub
-  const GITHUB_REPO = 'Fu6rfho5zf/ROKU';
-  const GITHUB_BASE_URL = 'https://api.github.com';
-
-  // Estado da aplicação
-  let currentTab = 'home';
-  let editingGuid = null;
-  let rssItems = {
-    home: [],
-    canais: [],
-    filmes: [],
-    series: []
-  };
-  let searchTimeout = null;
-  let lastSearchTerm = '';
-  let m3uItems = [];
-  let selectedM3UItem = null;
-  let pendingRSSData = null;
-  let pendingRSSFileName = '';
-
-  const categoriesContainer = document.getElementById('categories-container');
-  const statusMessage = document.getElementById('status-message');
-  const loadingOverlay = document.getElementById('loading-overlay');
-
-  // Inicialização
-  document.addEventListener('DOMContentLoaded', function() {
-    // Configurar tabs
-    document.querySelectorAll('.tab').forEach(tab => {
-      tab.addEventListener('click', function() {
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        this.classList.add('active');
-        currentTab = this.dataset.tab;
-        fetchAndRender();
+    // Configurar drag and drop para as abas
+    function setupDragAndDrop(tab) {
+      tab.addEventListener('dragstart', function(e) {
+        this.classList.add('dragging');
+        e.dataTransfer.setData('text/plain', this.dataset.tab);
       });
-    });
-
-    // Carregar dados salvos
-    loadData();
-    fetchAndRender();
-  });
-
-  // Carregar dados do localStorage
-  function loadData() {
-    const savedData = localStorage.getItem('flixTvData');
-    if (savedData) {
-      try {
-        const parsedData = JSON.parse(savedData);
-        rssItems.home = parsedData.home || [];
-        rssItems.canais = parsedData.canais || [];
-        rssItems.filmes = parsedData.filmes || [];
-        rssItems.series = parsedData.series || [];
-      } catch (e) {
-        console.error('Erro ao carregar dados:', e);
-        showStatus('❌ Erro ao carregar dados salvos', 'error');
-      }
-    }
-  }
-
-  // Salvar dados no localStorage
-  function saveData() {
-    try {
-      localStorage.setItem('flixTvData', JSON.stringify(rssItems));
-      return true;
-    } catch (e) {
-      console.error('Erro ao salvar dados:', e);
-      showStatus('❌ Erro ao salvar dados', 'error');
-      return false;
-    }
-  }
-
-  // Exportar dados
-  function exportData() {
-    const dataStr = JSON.stringify(rssItems, null, 2);
-    const dataBlob = new Blob([dataStr], {type: 'application/json'});
-    
-    const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `flixTvData_${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    
-    showStatus('✅ Dados exportados com sucesso!', 'success');
-  }
-
-  // Função para abrir modal de download
-  function openDownloadModal() {
-    const fileName = getRSSFileName();
-    document.getElementById('download-filename').textContent = fileName;
-    document.getElementById('modal-download-rss').classList.add('active');
-    
-    // Limpar status anterior
-    document.getElementById('github-status').style.display = 'none';
-  }
-
-  // Função para fechar modal de download
-  function closeDownloadModal() {
-    document.getElementById('modal-download-rss').classList.remove('active');
-    document.getElementById('github-status').style.display = 'none';
-  }
-
-  // Função para obter nome do arquivo RSS baseado na aba atual
-  function getRSSFileName() {
-    const tabNames = {
-      'home': 'FlixHome',
-      'canais': 'FlixCanais', 
-      'filmes': 'FlixFilmes',
-      'series': 'FlixSeries'
-    };
-    return `${tabNames[currentTab] || 'FlixHome'}.rss`;
-  }
-
-  // Função para download local
-  function downloadRSSLocal() {
-    const items = rssItems[currentTab];
-    const xmlContent = buildRSSFromItems(items);
-    const dataBlob = new Blob([xmlContent], {type: 'application/rss+xml'});
-    
-    const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement('a');
-    link.href = url;
-    
-    const fileName = getRSSFileName();
-    link.download = fileName;
-    
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    
-    showStatus(`✅ Arquivo ${fileName} baixado com sucesso!`, 'success');
-    closeDownloadModal();
-  }
-
-  // Função para upload no GitHub
-  async function uploadToGitHub() {
-    const statusDiv = document.getElementById('github-status');
-    const fileName = getRSSFileName();
-    const items = rssItems[currentTab];
-    const xmlContent = buildRSSFromItems(items);
-    
-    // Obter token do input
-    const tokenInput = document.getElementById('github-token');
-    const githubToken = tokenInput.value.trim();
-    
-    if (!githubToken) {
-      statusDiv.textContent = '❌ Token GitHub é obrigatório. Cole seu token pessoal no campo acima.';
-      statusDiv.className = 'github-status github-error';
-      statusDiv.style.display = 'block';
-      return;
-    }
-
-    // Verificar formato do token (deve começar com ghp_ ou github_pat_)
-    if (!githubToken.startsWith('ghp_') && !githubToken.startsWith('github_pat_')) {
-      statusDiv.textContent = '❌ Token inválido. O token deve começar com "ghp_" ou "github_pat_"';
-      statusDiv.className = 'github-status github-error';
-      statusDiv.style.display = 'block';
-      return;
-    }
-    
-    showLoading('Enviando para GitHub...');
-    
-    try {
-      // Primeiro, verifica se o arquivo já existe para obter o SHA
-      let sha = null;
-      try {
-        const existingFile = await fetch(
-          `${GITHUB_BASE_URL}/repos/${GITHUB_REPO}/contents/${fileName}`,
-          {
-            headers: {
-              'Authorization': `Bearer ${githubToken}`,
-              'Accept': 'application/vnd.github.v3+json'
-            }
+      
+      tab.addEventListener('dragend', function() {
+        this.classList.remove('dragging');
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('drag-over'));
+      });
+      
+      tab.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        this.classList.add('drag-over');
+      });
+      
+      tab.addEventListener('dragenter', function(e) {
+        e.preventDefault();
+        this.classList.add('drag-over');
+      });
+      
+      tab.addEventListener('dragleave', function() {
+        this.classList.remove('drag-over');
+      });
+      
+      tab.addEventListener('drop', function(e) {
+        e.preventDefault();
+        this.classList.remove('drag-over');
+        
+        const draggedTabId = e.dataTransfer.getData('text/plain');
+        const draggedTab = document.querySelector(`.tab[data-tab="${draggedTabId}"]`);
+        const targetTab = this;
+        
+        if (draggedTab !== targetTab) {
+          // Reordenar as abas
+          const tabs = Array.from(tabsContainer.querySelectorAll('.tab'));
+          const draggedIndex = tabs.indexOf(draggedTab);
+          const targetIndex = tabs.indexOf(targetTab);
+          
+          if (draggedIndex < targetIndex) {
+            targetTab.parentNode.insertBefore(draggedTab, targetTab.nextSibling);
+          } else {
+            targetTab.parentNode.insertBefore(draggedTab, targetTab);
           }
-        );
-        
-        if (existingFile.ok) {
-          const fileData = await existingFile.json();
-          sha = fileData.sha;
-        } else if (existingFile.status === 404) {
-          // Arquivo não existe, continuar sem SHA
-          console.log('Arquivo não existe, criando novo...');
-        } else {
-          throw new Error(`Erro ao verificar arquivo: ${existingFile.status}`);
+          
+          // Atualizar a ordem no array
+          const draggedTabValue = draggedTab.dataset.tab;
+          const targetTabValue = targetTab.dataset.tab;
+          
+          const draggedIndexInOrder = tabOrder.indexOf(draggedTabValue);
+          const targetIndexInOrder = tabOrder.indexOf(targetTabValue);
+          
+          tabOrder.splice(draggedIndexInOrder, 1);
+          tabOrder.splice(targetIndexInOrder, 0, draggedTabValue);
+          
+          // Salvar a nova ordem
+          saveTabOrder();
         }
-      } catch (e) {
-        console.log('Erro ao verificar arquivo existente:', e);
-      }
-      
-      // Codificar conteúdo para base64
-      const contentBytes = new TextEncoder().encode(xmlContent);
-      let contentBase64 = '';
-      for (let i = 0; i < contentBytes.length; i++) {
-        contentBase64 += String.fromCharCode(contentBytes[i]);
-      }
-      contentBase64 = btoa(contentBase64);
-      
-      // Faz o upload do arquivo
-      const response = await fetch(
-        `${GITHUB_BASE_URL}/repos/${GITHUB_REPO}/contents/${fileName}`,
-        {
-          method: 'PUT',
-          headers: {
-            'Authorization': `Bearer ${githubToken}`,
-            'Content-Type': 'application/json',
-            'Accept': 'application/vnd.github.v3+json'
-          },
-          body: JSON.stringify({
-            message: `Atualização automática: ${fileName}`,
-            content: contentBase64,
-            sha: sha
-          })
-        }
-      );
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        let errorMessage = errorData.message || 'Erro ao enviar para GitHub';
-        
-        // Mensagens de erro mais específicas
-        if (errorMessage.includes('Bad credentials')) {
-          errorMessage = 'Token inválido ou expirado. Gere um novo token.';
-        } else if (errorMessage.includes('not found')) {
-          errorMessage = 'Repositório não encontrado. Verifique o nome do repositório.';
-        } else if (errorMessage.includes('insufficient_scope')) {
-          errorMessage = 'Token sem permissões suficientes. O token precisa ter permissão "repo".';
-        }
-        
-        throw new Error(errorMessage);
-      }
-      
-      const result = await response.json();
-      
-      hideLoading();
-      statusDiv.textContent = `✅ Arquivo ${fileName} enviado com sucesso para o GitHub!`;
-      statusDiv.className = 'github-status github-success';
-      statusDiv.style.display = 'block';
-      
-      showStatus(`✅ Arquivo ${fileName} enviado para GitHub com sucesso!`, 'success');
-      
-      // Fecha o modal após 2 segundos
-      setTimeout(() => {
-        closeDownloadModal();
-      }, 2000);
-      
-    } catch (error) {
-      hideLoading();
-      console.error('Erro ao enviar para GitHub:', error);
-      statusDiv.textContent = `❌ Erro ao enviar para GitHub: ${error.message}`;
-      statusDiv.className = 'github-status github-error';
-      statusDiv.style.display = 'block';
-    }
-  }
-
-  // [Resto do código permanece igual...]
-
-  // Importar dados JSON
-  function importData(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      try {
-        const importedData = JSON.parse(e.target.result);
-        
-        // Validar estrutura dos dados
-        if (importedData.home && importedData.canais && importedData.filmes && importedData.series) {
-          rssItems = importedData;
-          saveData();
-          fetchAndRender();
-          showStatus('✅ Dados importados com sucesso!', 'success');
-        } else {
-          showStatus('❌ Formato de arquivo inválido', 'error');
-        }
-      } catch (error) {
-        showStatus('❌ Erro ao importar dados: ' + error.message, 'error');
-      }
-    };
-    reader.readAsText(file);
-    event.target.value = ''; // Reset input
-  }
-
-  // Importar dados RSS
-  function importRSSData(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    // Detectar tipo de arquivo pelo nome
-    const fileName = file.name.toLowerCase();
-    let targetTab = 'home';
-    
-    if (fileName.includes('filmes')) {
-      targetTab = 'filmes';
-    } else if (fileName.includes('series') || fileName.includes('séries')) {
-      targetTab = 'series';
-    } else if (fileName.includes('canais')) {
-      targetTab = 'canais';
-    } else if (fileName.includes('home')) {
-      targetTab = 'home';
-    }
-
-    pendingRSSFileName = fileName;
-
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      try {
-        const xmlContent = e.target.result;
-        const parser = new DOMParser();
-        const xml = parser.parseFromString(xmlContent, 'application/xml');
-        
-        // Verifica se o XML é válido
-        if (xml.querySelector('parsererror')) {
-          throw new Error('XML inválido');
-        }
-        
-        const items = [...xml.querySelectorAll('item')];
-        const importedItems = items.map(item => ({
-          title: item.querySelector('title')?.textContent.trim() ?? '',
-          category: item.querySelector('category')?.textContent.trim() ?? '',
-          link: item.querySelector('link')?.textContent.trim() ?? '',
-          description: item.querySelector('description')?.textContent.trim() ?? '',
-          pubDate: item.querySelector('pubDate')?.textContent.trim() ?? (new Date().toUTCString()),
-          guid: item.querySelector('guid')?.textContent.trim() ?? (Math.random().toString(36).substr(2)),
-          logo: item.querySelector('media\\:thumbnail, [url]')?.getAttribute('url') ?? ''
-        }));
-
-        // Armazena os dados importados para processamento posterior
-        pendingRSSData = {
-          targetTab: targetTab,
-          items: importedItems
-        };
-
-        // Mostra modal de substituição
-        document.getElementById('rss-item-count').textContent = importedItems.length;
-        document.getElementById('modal-replace-rss').classList.add('active');
-
-      } catch (error) {
-        showStatus('❌ Erro ao importar RSS: ' + error.message, 'error');
-      }
-    };
-    reader.readAsText(file);
-    event.target.value = ''; // Reset input
-  }
-
-  // Substituir dados RSS
-  function replaceRSSData() {
-    if (!pendingRSSData) return;
-    
-    const { targetTab, items } = pendingRSSData;
-    
-    // Substitui todos os itens da aba
-    rssItems[targetTab] = items;
-    saveData();
-    
-    // Mudar para a aba correspondente
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.querySelector(`.tab[data-tab="${targetTab}"]`).classList.add('active');
-    currentTab = targetTab;
-    
-    fetchAndRender();
-    showStatus(`✅ ${items.length} itens importados do RSS substituindo conteúdo atual!`, 'success');
-    
-    closeReplaceRSSModal();
-  }
-
-  // Mesclar dados RSS
-  function mergeRSSData() {
-    if (!pendingRSSData) return;
-    
-    const { targetTab, items } = pendingRSSData;
-    
-    // Adiciona aos itens existentes
-    rssItems[targetTab] = [...rssItems[targetTab], ...items];
-    saveData();
-    
-    // Mudar para a aba correspondente
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.querySelector(`.tab[data-tab="${targetTab}"]`).classList.add('active');
-    currentTab = targetTab;
-    
-    fetchAndRender();
-    showStatus(`✅ ${items.length} itens importados do RSS adicionados aos existentes!`, 'success');
-    
-    closeReplaceRSSModal();
-  }
-
-  // Fechar modal de substituição RSS
-  function closeReplaceRSSModal() {
-    document.getElementById('modal-replace-rss').classList.remove('active');
-    pendingRSSData = null;
-    pendingRSSFileName = '';
-  }
-
-  // Exportar dados específicos
-  function exportToFile(type) {
-    const dataStr = JSON.stringify(rssItems[type], null, 2);
-    const dataBlob = new Blob([dataStr], {type: 'application/json'});
-    
-    const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `flixTv_${type}_${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    
-    showStatus(`✅ ${type.charAt(0).toUpperCase() + type.slice(1)} exportados com sucesso!`, 'success');
-    closeExportModal();
-  }
-
-  // Importar dados específicos
-  function importFromFile(event, type) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      try {
-        const importedData = JSON.parse(e.target.result);
-        
-        // Validar que é um array
-        if (Array.isArray(importedData)) {
-          rssItems[type] = importedData;
-          saveData();
-          fetchAndRender();
-          showStatus(`✅ ${type.charAt(0).toUpperCase() + type.slice(1)} importados com sucesso!`, 'success');
-        } else {
-          showStatus('❌ Formato de arquivo inválido', 'error');
-        }
-      } catch (error) {
-        showStatus('❌ Erro ao importar dados: ' + error.message, 'error');
-      }
-    };
-    reader.readAsText(file);
-    event.target.value = ''; // Reset input
-    closeExportModal();
-  }
-
-  // Mostra mensagem de status
-  function showStatus(message, type = 'info') {
-    statusMessage.textContent = message;
-    statusMessage.className = `status-message status-${type}`;
-    statusMessage.style.display = 'block';
-    
-    setTimeout(() => {
-      statusMessage.style.display = 'none';
-    }, 5000);
-  }
-
-  // Controles do Modal
-  function openModal(item) {
-    document.getElementById('modal-form').classList.add('active');
-    document.getElementById('modal-title').innerText = editingGuid ? "Editar Conteúdo" : "Adicionar Conteúdo";
-    
-    let itemToEdit = item;
-    if (editingGuid && !itemToEdit) {
-      itemToEdit = rssItems[currentTab].find(it => it.guid === editingGuid);
-    }
-
-    document.getElementById('input-title').value = itemToEdit?.title || '';
-    document.getElementById('input-category').value = itemToEdit?.category || '';
-    document.getElementById('input-logo').value = itemToEdit?.logo || '';
-    document.getElementById('input-link').value = itemToEdit?.link || '';
-    document.getElementById('input-description').value = itemToEdit?.description || '';
-    
-    validarCanalLogo();
-  }
-
-  function closeModal() {
-    document.getElementById('modal-form').classList.remove('active');
-    editingGuid = null;
-    // Limpa resultados da busca
-    document.getElementById('tmdb-results').style.display = 'none';
-    document.getElementById('search-status').textContent = '';
-  }
-
-  function openExportModal() {
-    document.getElementById('modal-export').classList.add('active');
-  }
-
-  function closeExportModal() {
-    document.getElementById('modal-export').classList.remove('active');
-  }
-
-  // Modal M3U
-  function openM3UModal() {
-    document.getElementById('modal-m3u').classList.add('active');
-    document.getElementById('m3u-file').value = '';
-    document.getElementById('m3u-content').style.display = 'none';
-    m3uItems = [];
-    selectedM3UItem = null;
-  }
-
-  function closeM3UModal() {
-    document.getElementById('modal-m3u').classList.remove('active');
-  }
-
-  // Processar arquivo M3U
-  document.getElementById('m3u-file').addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    if (!file.name.toLowerCase().includes('m3.m3u')) {
-      showStatus('⚠️ Por favor, selecione o arquivo M3.m3u', 'warning');
-      return;
-    }
-
-    showLoading('Processando arquivo M3U...');
-
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      try {
-        processM3UContent(e.target.result);
-        hideLoading();
-      } catch (error) {
-        hideLoading();
-        showStatus('❌ Erro ao processar arquivo M3U: ' + error.message, 'error');
-      }
-    };
-    reader.onerror = function() {
-      hideLoading();
-      showStatus('❌ Erro ao ler arquivo', 'error');
-    };
-    reader.readAsText(file);
-  });
-
-  function processM3UContent(content) {
-    const lines = content.split('\n');
-    m3uItems = [];
-    let currentItem = null;
-
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i].trim();
-      
-      if (line.startsWith('#EXTINF:')) {
-        // Parse EXTINF line
-        const extinf = line.substring(8);
-        const commaIndex = extinf.indexOf(',');
-        const params = extinf.substring(0, commaIndex);
-        const title = extinf.substring(commaIndex + 1);
-        
-        currentItem = {
-          title: title,
-          url: '',
-          group: 'CANAIS AO VIVO', // Default category
-          tvgId: '',
-          tvgLogo: ''
-        };
-
-        // Parse parameters
-        const paramsList = params.split(' ');
-        paramsList.forEach(param => {
-          if (param.startsWith('group-title="')) {
-            currentItem.group = param.substring(13, param.length - 1);
-          } else if (param.startsWith('tvg-id="')) {
-            currentItem.tvgId = param.substring(8, param.length - 1);
-          } else if (param.startsWith('tvg-logo="')) {
-            currentItem.tvgLogo = param.substring(10, param.length - 1);
-          }
-        });
-
-      } else if (line && !line.startsWith('#') && currentItem) {
-        // URL line
-        currentItem.url = line;
-        m3uItems.push(currentItem);
-        currentItem = null;
-      }
-    }
-
-    displayM3UItems();
-  }
-
-  function displayM3UItems() {
-    const contentDiv = document.getElementById('m3u-content');
-    const itemsList = document.getElementById('m3u-items-list');
-    
-    if (m3uItems.length === 0) {
-      itemsList.innerHTML = '<div class="empty-state"><p>Nenhum conteúdo encontrado no arquivo M3U</p></div>';
-      contentDiv.style.display = 'block';
-      return;
-    }
-
-    // Agrupar por categoria
-    const groupedItems = {};
-    m3uItems.forEach(item => {
-      if (!groupedItems[item.group]) {
-        groupedItems[item.group] = [];
-      }
-      groupedItems[item.group].push(item);
-    });
-
-    let html = '';
-    
-    // Ordenar categorias: Canais ao Vivo primeiro, depois Filmes, Séries, etc.
-    const categoryOrder = ['CANAIS AO VIVO', 'FILMES', 'SÉRIES', 'FILMES E SÉRIES'];
-    const sortedCategories = Object.keys(groupedItems).sort((a, b) => {
-      const indexA = categoryOrder.indexOf(a.toUpperCase());
-      const indexB = categoryOrder.indexOf(b.toUpperCase());
-      if (indexA !== -1 && indexB !== -1) return indexA - indexB;
-      if (indexA !== -1) return -1;
-      if (indexB !== -1) return 1;
-      return a.localeCompare(b);
-    });
-
-    sortedCategories.forEach(category => {
-      html += `<div class="m3u-category">${category}</div>`;
-      groupedItems[category].forEach(item => {
-        const logo = item.tvgLogo || getCanalLogoFromTitle(item.title);
-        html += `
-          <div class="m3u-item" onclick="selectM3UItem(this)" data-title="${escapeHTML(item.title)}" data-url="${escapeHTML(item.url)}" data-category="${escapeHTML(category)}" data-logo="${escapeHTML(logo)}">
-            <div class="m3u-item-title">${item.title}</div>
-            <div class="m3u-item-url">${item.url.substring(0, 80)}...</div>
-            <div class="action-buttons">
-              <button class="btn-copy" onclick="event.stopPropagation(); copyM3UItem('${escapeHTML(item.title)}', '${escapeHTML(item.url)}', '${escapeHTML(category)}', '${escapeHTML(logo)}')">📋 Copiar</button>
-              <button class="btn-add-rss" onclick="event.stopPropagation(); addM3UItemToRSS('${escapeHTML(item.title)}', '${escapeHTML(item.url)}', '${escapeHTML(category)}', '${escapeHTML(logo)}')">➕ RSS</button>
-            </div>
-          </div>
-        `;
       });
-    });
-
-    itemsList.innerHTML = html;
-    contentDiv.style.display = 'block';
-    showStatus(`✅ ${m3uItems.length} itens carregados do arquivo M3U`, 'success');
-  }
-
-  function escapeHTML(str) {
-    return str.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-  }
-
-  function selectM3UItem(element) {
-    // Remove seleção anterior
-    document.querySelectorAll('.m3u-item').forEach(item => {
-      item.classList.remove('selected');
-    });
-    
-    // Adiciona seleção atual
-    element.classList.add('selected');
-    selectedM3UItem = {
-      title: element.dataset.title,
-      url: element.dataset.url,
-      category: element.dataset.category,
-      logo: element.dataset.logo
-    };
-  }
-
-  function copyM3UItem(title, url, category, logo) {
-    const itemData = {
-      title: title,
-      url: url,
-      category: category,
-      logo: logo,
-      description: `Conteúdo carregado do M3U: ${title}`
-    };
-    
-    const textToCopy = `Título: ${title}\nURL: ${url}\nCategoria: ${category}\nLogo: ${logo}`;
-    
-    navigator.clipboard.writeText(textToCopy).then(() => {
-      showStatus('✅ Conteúdo copiado para a área de transferência!', 'success');
-    }).catch(() => {
-      // Fallback para navegadores mais antigos
-      const textArea = document.createElement('textarea');
-      textArea.value = textToCopy;
-      document.body.appendChild(textArea);
-      textArea.select();
-      document.execCommand('copy');
-      document.body.removeChild(textArea);
-      showStatus('✅ Conteúdo copiado para a área de transferência!', 'success');
-    });
-  }
-
-  async function addM3UItemToRSS(title, url, category, logo) {
-    const newItem = {
-      title: title,
-      category: category,
-      link: url,
-      description: `Conteúdo carregado do M3U: ${title}`,
-      pubDate: new Date().toUTCString(),
-      guid: 'm3u_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
-      logo: logo || getCanalLogoFromTitle(title)
-    };
-
-    const novosItens = [...rssItems[currentTab], newItem];
-    const success = await salvarNoLocal(novosItens);
-
-    if (success) {
-      showStatus(`✅ "${title}" adicionado ao RSS com sucesso!`, 'success');
     }
-  }
-
-  function getCanalLogoFromTitle(title) {
-    const canalSlug = getCanalSlugFromTitle(title);
-    if (canalSlug) {
-      return `${CANAL_LOGO_BASE_URL}${canalSlug}.png`;
-    }
-    return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjMUEyQTMzIi8+CjxwYXRoIGQ9Ik04MCA2MEgxMjBWOTBIMTAwVjgwSDgwVjYwWk02MCAxMDBWODBINzBWMTIwSDYwVjEwMFpNODAgMTIwVjEwMEg5MFYxMjBIODBaTTEwMCAxMjBWMTEwSDEyMFYxMjBIMTAwWk03MCA3MEg5MFY5MEg3MFY3MFpNOTAgOTBIMTEwVjExMEg5MFY5MFoiIGZpbGw9IiM2NjY2NjYiLz4KPC9zdmc+';
-  }
-
-  // Mostra/oculta loading
-  function showLoading(message = 'Processando...') {
-    document.getElementById('loading-text').textContent = message;
-    loadingOverlay.classList.add('active');
-  }
-
-  function hideLoading() {
-    loadingOverlay.classList.remove('active');
-  }
-
-  // Constrói o XML RSS
-  function buildRSSFromItems(items) {
-    let xml = `<?xml version="1.0" encoding="UTF-8"?>
-<rss xmlns:media="http://search.yahoo.com/mrss/" version="2.0">
-  <channel>
-    <title>Roku-Developer-Sample-Feed</title>
-`;
     
-    items.forEach(item => {
-      xml += `
-    <item>
-      <title>${escapeXML(item.title)}</title>
-      <category>${escapeXML(item.category)}</category>
-      <link>${escapeXML(item.link)}</link>
-      <description>${escapeXML(item.description)}</description>
-      <pubDate>${item.pubDate}</pubDate>
-      <guid isPermaLink="false">${item.guid}</guid>
-      <media:content
-        channels="2"
-        bitrate="1500"
-        duration="0"
-        fileSize="0"
-        framerate="25"
-        height="720"
-        width="1280"
-        type="video/m3u8"
-        isDefault="true"
-        url="${escapeXML(item.link)}">
-        <media:thumbnail url="${escapeXML(item.logo)}" />
-        <media:title>${escapeXML(item.title)}</media:title>
-      </media:content>
-    </item>
-`;
-    });
-    
-    xml += `  </channel>
-</rss>`;
-    return xml;
-  }
-
-  // Escapa caracteres especiais para XML
-  function escapeXML(str) {
-    return str.replace(/[<>&"']/g, function(match) {
-      switch(match) {
-        case '<': return '&lt;';
-        case '>': return '&gt;';
-        case '&': return '&amp;';
-        case '"': return '&quot;';
-        case "'": return '&apos;';
-        default: return match;
-      }
-    });
-  }
-
-  // Atualiza interface
-  function updateItemInUI(item) {
-    const cards = document.querySelectorAll('.content-card');
-    cards.forEach(card => {
-      if (card.dataset.guid === item.guid) {
-        card.querySelector('.title').textContent = item.title;
-        card.querySelector('.desc').textContent = 
-          item.description.length > 55 ? item.description.slice(0, 52) + "..." : item.description;
-        card.querySelector('.cover').src = item.logo;
-        card.querySelector('.cover').alt = item.title;
-      }
-    });
-  }
-
-  function removeItemFromUI(guid) {
-    const cards = document.querySelectorAll('.content-card');
-    cards.forEach(card => {
-      if (card.dataset.guid === guid) {
-        card.style.opacity = '0';
-        card.style.transform = 'scale(0.8)';
-        setTimeout(() => card.remove(), 300);
-      }
-    });
-  }
-
-  // Carrega e renderiza o feed
-  function fetchAndRender() {
-    try {
-      const items = rssItems[currentTab] || [];
-      renderCategories(items);
+    // Reordenar as abas conforme o array tabOrder
+    function reorderTabs() {
+      const tabs = Array.from(tabsContainer.querySelectorAll('.tab'));
       
-    } catch (error) {
-      console.error('Erro ao carregar RSS:', error);
-      categoriesContainer.innerHTML = `
-        <div class="empty-state">
-          <p>❌ Erro ao carregar o feed: ${error.message}</p>
-          <p style="margin-top: 10px; font-size: 14px;">Verifique seus dados e tente novamente.</p>
-        </div>
-      `;
-    }
-  }
-
-  // Renderiza categorias
-  function renderCategories(items) {
-    const grouped = {};
-    items.forEach(item => {
-      if (!grouped[item.category]) grouped[item.category] = [];
-      grouped[item.category].push(item);
-    });
-
-    categoriesContainer.innerHTML = '';
-
-    if (Object.keys(grouped).length === 0) {
-      categoriesContainer.innerHTML = `
-        <div class="empty-state">
-          <p>Nenhum conteúdo adicionado ainda.</p>
-          <p style="margin-top: 10px;">Clique no botão + para começar!</p>
-        </div>
-      `;
-      return;
-    }
-
-    Object.keys(grouped).forEach(category => {
-      const divCategory = document.createElement('section');
-      divCategory.className = 'category';
-
-      // Header da categoria
-      const logoUrl = grouped[category][0]?.logo || '';
-      const categoryHeader = document.createElement('div');
-      categoryHeader.className = 'category-header';
-
-      const logoImg = document.createElement('img');
-      logoImg.className = 'category-logo';
-      logoImg.src = logoUrl;
-      logoImg.alt = category;
-      logoImg.onerror = () => logoImg.style.display = 'none';
-
-      const titleCat = document.createElement('h2');
-      titleCat.textContent = category;
-
-      categoryHeader.appendChild(logoImg);
-      categoryHeader.appendChild(titleCat);
-      divCategory.appendChild(categoryHeader);
-
-      // Grid de conteúdo
-      const divContentList = document.createElement('div');
-      divContentList.className = 'content-list';
-
-      grouped[category].forEach(item => {
-        const card = createContentCard(item);
-        divContentList.appendChild(card);
+      // Ordenar as abas conforme tabOrder
+      tabs.sort((a, b) => {
+        return tabOrder.indexOf(a.dataset.tab) - tabOrder.indexOf(b.dataset.tab);
       });
-
-      divCategory.appendChild(divContentList);
-      categoriesContainer.appendChild(divCategory);
-    });
-  }
-
-  // Cria card de conteúdo
-  function createContentCard(item) {
-    const card = document.createElement('div');
-    card.className = 'content-card';
-    card.dataset.guid = item.guid;
-
-    const imgCover = document.createElement('img');
-    imgCover.className = 'cover';
-    imgCover.src = item.logo;
-    imgCover.alt = item.title;
-    imgCover.onerror = () => {
-      imgCover.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjMUEyQTMzIi8+CjxwYXRoIGQ9Ik04MCA2MEgxMjBWOTBIMTAwVjgwSDgwVjYwWk02MCAxMDBWODBINzBWMTIwSDYwVjEwMFpNODAgMTIwVjEwMEg5MFYxMjBIODBaTTEwMCAxMjBWMTEwSDEyMFYxMjBIMTAwWk03MCA3MEg5MFY5MEg3MFY3MFpNOTAgOTBIMTEwVjExMEg5MFY5MFoiIGZpbGw9IiM2NjY2NjYiLz4KPC9zdmc+';
-    };
-
-    const cardInfo = document.createElement('div');
-    cardInfo.className = 'card-info';
-
-    const titleDiv = document.createElement('div');
-    titleDiv.className = 'title';
-    titleDiv.textContent = item.title;
-
-    const descDiv = document.createElement('div');
-    descDiv.className = 'desc';
-    descDiv.textContent = item.description.length > 55 ? 
-      item.description.slice(0, 52) + "..." : item.description;
-
-    cardInfo.appendChild(titleDiv);
-    cardInfo.appendChild(descDiv);
-
-    // Botões de edição
-    const editBtns = document.createElement('span');
-    editBtns.className = 'edit-btns';
-
-    const btnEdit = document.createElement('button');
-    btnEdit.className = 'btn btn-edit';
-    btnEdit.textContent = '✏️';
-    btnEdit.title = 'Editar';
-    btnEdit.onclick = (e) => {
-      e.stopPropagation();
-      editingGuid = item.guid;
-      openModal(item);
-    };
-
-    const btnDel = document.createElement('button');
-    btnDel.className = 'btn btn-del';
-    btnDel.textContent = '🗑️';
-    btnDel.title = 'Apagar';
-    btnDel.onclick = (e) => {
-      e.stopPropagation();
-      if (confirm('Tem certeza que deseja apagar este conteúdo?')) {
-        apagarItem(item.guid);
+      
+      // Remover todas as abas do container
+      while (tabsContainer.firstChild) {
+        tabsContainer.removeChild(tabsContainer.firstChild);
       }
-    };
-
-    editBtns.appendChild(btnEdit);
-    editBtns.appendChild(btnDel);
-
-    card.appendChild(imgCover);
-    card.appendChild(cardInfo);
-    card.appendChild(editBtns);
-
-    return card;
-  }
-
-  // Salva localmente
-  async function salvarNoLocal(novosItens) {
-    showLoading('Salvando...');
+      
+      // Adicionar as abas na nova ordem
+      tabs.forEach(tab => {
+        tabsContainer.appendChild(tab);
+      });
+    }
     
-    try {
-      rssItems[currentTab] = novosItens;
-      const success = saveData();
-
-      if (success) {
-        hideLoading();
-        showStatus('✅ Conteúdo salvo com sucesso!', 'success');
-        closeModal();
-        editingGuid = null;
-        renderCategories(novosItens);
+    // Salvar a ordem das abas no localStorage
+    function saveTabOrder() {
+      try {
+        localStorage.setItem('flixTvTabOrder', JSON.stringify(tabOrder));
         return true;
-      } else {
-        throw new Error('Erro ao salvar dados localmente');
+      } catch (e) {
+        console.error('Erro ao salvar ordem das abas:', e);
+        return false;
       }
-    } catch (error) {
-      hideLoading();
-      showStatus(`❌ Erro ao salvar: ${error.message}`, 'error');
-      return false;
     }
-  }
-
-  // Adiciona ou edita item
-  async function salvarItem() {
-    const title = document.getElementById('input-title').value.trim();
-    const category = document.getElementById('input-category').value.trim();
-    let logo = document.getElementById('input-logo').value.trim();
-    const link = document.getElementById('input-link').value.trim();
-    const description = document.getElementById('input-description').value.trim();
-
-    // Validações
-    if (!title || !category || !logo || !link) {
-      showStatus('⚠️ Preencha todos os campos obrigatórios!', 'warning');
-      return;
-    }
-
-    // Processa logo do canal
-    if (logo && !logo.startsWith('http') && !logo.startsWith('data:')) {
-      const canalSlug = logo.toLowerCase().replace(/[^a-z0-9]/g, '');
-      logo = `${CANAL_LOGO_BASE_URL}${canalSlug}.png`;
-    }
-
-    // Valida URL
-    try {
-      new URL(link);
-    } catch {
-      showStatus('⚠️ URL do conteúdo inválida!', 'warning');
-      return;
-    }
-
-    const newItem = {
-      title,
-      category,
-      link,
-      description,
-      pubDate: new Date().toUTCString(),
-      guid: editingGuid ?? 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
-      logo
-    };
-
-    let novosItens;
-    if (editingGuid) {
-      novosItens = rssItems[currentTab].map(it => it.guid === editingGuid ? newItem : it);
-    } else {
-      novosItens = [...rssItems[currentTab], newItem];
-    }
-
-    // Mostra loading no botão
-    const btnSave = document.getElementById('btn-save');
-    const btnSaveText = document.getElementById('btn-save-text');
-    const btnSaveSpinner = document.getElementById('btn-save-spinner');
     
-    btnSave.disabled = true;
-    btnSaveText.textContent = 'Salvando...';
-    btnSaveSpinner.style.display = 'inline-block';
-
-    const success = await salvarNoLocal(novosItens);
-
-    // Restaura botão
-    btnSave.disabled = false;
-    btnSaveText.textContent = 'Salvar';
-    btnSaveSpinner.style.display = 'none';
-
-    if (success) {
-      closeModal();
-    }
-  }
-
-  // Apaga item
-  async function apagarItem(guid) {
-    if (!confirm('Tem certeza que deseja apagar este conteúdo?')) {
-      return;
-    }
-
-    removeItemFromUI(guid);
-    const novosItens = rssItems[currentTab].filter(it => it.guid !== guid);
-    await salvarNoLocal(novosItens);
-  }
-
-  // Busca TMDb
-  async function buscarConteudoTMDbAoDigitar() {
-    const title = document.getElementById('input-title').value.trim();
-    const statusDiv = document.getElementById('search-status');
-
-    if (searchTimeout) clearTimeout(searchTimeout);
-
-    if (!title) {
-      statusDiv.textContent = '';
-      lastSearchTerm = '';
-      document.getElementById('tmdb-results').style.display = 'none';
-      return;
-    }
-
-    if (title.length < 2) {
-      statusDiv.textContent = '';
-      return;
-    }
-
-    if (title === lastSearchTerm) {
-      return;
-    }
-
-    statusDiv.textContent = '🔍 Buscando...';
-    statusDiv.style.color = '#888';
-
-    searchTimeout = setTimeout(() => {
-      executarBuscaTMDb(title, statusDiv);
-    }, 800);
-  }
-
-  async function executarBuscaTMDb(title, statusDiv) {
-    try {
-      const url = `${TMDB_BASE_URL}/search/multi?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(title)}&language=pt-BR`;
-      const response = await fetch(url);
+    // Carregar dados do localStorage 
+    function loadData() { 
+      const savedData = localStorage.getItem('flixTvData'); 
+      if (savedData) { 
+        try { 
+          const parsedData = JSON.parse(savedData); 
+          rssItems.home = parsedData.home || []; 
+          rssItems.canais = parsedData.canais || []; 
+          rssItems.filmes = parsedData.filmes || []; 
+          rssItems.series = parsedData.series || []; 
+        } catch (e) { 
+          console.error('Erro ao carregar dados:', e); 
+          showStatus('❌ Erro ao carregar dados salvos', 'error'); 
+        } 
+      } 
+    } 
+    
+    // Salvar dados no localStorage 
+    function saveData() { 
+      try { 
+        localStorage.setItem('flixTvData', JSON.stringify(rssItems)); 
+        return true; 
+      } catch (e) { 
+        console.error('Erro ao salvar dados:', e); 
+        showStatus('❌ Erro ao salvar dados', 'error'); 
+        return false; 
+      } 
+    } 
+    
+    // Exportar dados 
+    function exportData() { 
+      const dataStr = JSON.stringify(rssItems, null, 2); 
+      const dataBlob = new Blob([dataStr], {type: 'application/json'}); 
+      const url = URL.createObjectURL(dataBlob); 
+      const link = document.createElement('a'); 
+      link.href = url; 
+      link.download = `flixTvData_${new Date().toISOString().split('T')[0]}.json`; 
+      document.body.appendChild(link); 
+      link.click(); 
+      document.body.removeChild(link); 
+      URL.revokeObjectURL(url); 
+      showStatus('✅ Dados exportados com sucesso!', 'success'); 
+    } 
+    
+    // Função para abrir modal de download 
+    function openDownloadModal() { 
+      const fileName = getRSSFileName(); 
+      document.getElementById('download-filename').textContent = fileName; 
+      document.getElementById('modal-download-rss').classList.add('active'); 
+      // Limpar status anterior 
+      document.getElementById('github-status').style.display = 'none'; 
+    } 
+    
+    // Função para fechar modal de download 
+    function closeDownloadModal() { 
+      document.getElementById('modal-download-rss').classList.remove('active'); 
+      document.getElementById('github-status').style.display = 'none'; 
+    } 
+    
+    // Função para obter nome do arquivo RSS baseado na aba atual 
+    function getRSSFileName() { 
+      const tabNames = { 
+        'home': 'FlixHome', 
+        'canais': 'FlixCanais', 
+        'filmes': 'FlixFilmes', 
+        'series': 'FlixSeries' 
+      }; 
+      return `${tabNames[currentTab] || 'FlixHome'}.rss`; 
+    } 
+    
+    // Função para download local 
+    function downloadRSSLocal() { 
+      const items = rssItems[currentTab]; 
+      const xmlContent = buildRSSFromItems(items); 
+      const dataBlob = new Blob([xmlContent], {type: 'application/rss+xml'}); 
+      const url = URL.createObjectURL(dataBlob); 
+      const link = document.createElement('a'); 
+      link.href = url; 
+      const fileName = getRSSFileName(); 
+      link.download = fileName; 
+      document.body.appendChild(link); 
+      link.click(); 
+      document.body.removeChild(link); 
+      URL.revokeObjectURL(url); 
+      showStatus(`✅ Arquivo ${fileName} baixado com sucesso!`, 'success'); 
+      closeDownloadModal(); 
+    } 
+    
+    // Função para upload no GitHub 
+    async function uploadToGitHub() { 
+      const statusDiv = document.getElementById('github-status'); 
+      const fileName = getRSSFileName(); 
+      const items = rssItems[currentTab]; 
+      const xmlContent = buildRSSFromItems(items); 
       
-      if (!response.ok) {
-        throw new Error('Erro na API TMDb');
-      }
+      // Obter token do input 
+      const tokenInput = document.getElementById('github-token'); 
+      const githubToken = tokenInput.value.trim(); 
       
-      const data = await response.json();
-      const resultsDiv = document.getElementById('tmdb-results');
-      const resultList = document.getElementById('tmdb-result-list');
-
-      if (data.results && data.results.length > 0) {
-        const validResults = data.results.filter(r => r.poster_path || r.profile_path);
-
-        if (validResults.length > 0) {
-          resultList.innerHTML = '';
-
-          validResults.forEach((result) => {
-            const imageUrl = result.poster_path 
-              ? `${TMDB_IMAGE_BASE_URL}${result.poster_path}` 
-              : `${TMDB_IMAGE_BASE_URL}${result.profile_path}`;
+      if (!githubToken) { 
+        statusDiv.textContent = '❌ Token GitHub é obrigatório. Cole seu token pessoal no campo acima.'; 
+        statusDiv.className = 'github-status github-error'; 
+        statusDiv.style.display = 'block'; 
+        return; 
+      } 
+      
+      // Verificar formato do token (deve começar com ghp_ ou github_pat_) 
+      if (!githubToken.startsWith('ghp_') && !githubToken.startsWith('github_pat_')) { 
+        statusDiv.textContent = '❌ Token inválido. O token deve começar com "ghp_" ou "github_pat_"'; 
+        statusDiv.className = 'github-status github-error'; 
+        statusDiv.style.display = 'block'; 
+        return; 
+      } 
+      
+      showLoading('Enviando para GitHub...'); 
+      
+      try { 
+        // Primeiro, verifica se o arquivo já existe para obter o SHA 
+        let sha = null; 
+        try { 
+          const existingFile = await fetch( 
+            `${GITHUB_BASE_URL}/repos/${GITHUB_REPO}/contents/${fileName}`, 
+            { 
+              headers: { 
+                'Authorization': `Bearer ${githubToken}`, 
+                'Accept': 'application/vnd.github.v3+json' 
+              } 
+            } 
+          ); 
+          if (existingFile.ok) { 
+            const fileData = await existingFile.json(); 
+            sha = fileData.sha; 
+          } else if (existingFile.status === 404) { 
+            // Arquivo não existe, continuar sem SHA 
+            console.log('Arquivo não existe, criando novo...'); 
+          } else { 
+            throw new Error(`Erro ao verificar arquivo: ${existingFile.status}`); 
+          } 
+        } catch (e) { 
+          console.log('Erro ao verificar arquivo existente:', e); 
+        } 
+        
+        // Codificar conteúdo para base64 
+        const contentBytes = new TextEncoder().encode(xmlContent); 
+        let contentBase64 = ''; 
+        for (let i = 0; i < contentBytes.length; i++) { 
+          contentBase64 += String.fromCharCode(contentBytes[i]); 
+        } 
+        contentBase64 = btoa(contentBase64); 
+        
+        // Faz o upload do arquivo 
+        const response = await fetch( 
+          `${GITHUB_BASE_URL}/repos/${GITHUB_REPO}/contents/${fileName}`, 
+          { 
+            method: 'PUT', 
+            headers: { 
+              'Authorization': `Bearer ${githubToken}`, 
+              'Content-Type': 'application/json', 
+              'Accept': 'application/vnd.github.v3+json' 
+            }, 
+            body: JSON.stringify({ 
+              message: `Atualização automática: ${fileName}`, 
+              content: contentBase64, 
+              sha: sha 
+            }) 
+          } 
+        ); 
+        
+        if (!response.ok) { 
+          const errorData = await response.json(); 
+          let errorMessage = errorData.message || 'Erro ao enviar para GitHub'; 
+          // Mensagens de erro mais específicas 
+          if (errorMessage.includes('Bad credentials')) { 
+            errorMessage = 'Token inválido ou expirado. Gere um novo token.'; 
+          } else if (errorMessage.includes('not found')) { 
+            errorMessage = 'Repositório não encontrado. Verifique o nome do repositório.'; 
+          } else if (errorMessage.includes('insufficient_scope')) { 
+            errorMessage = 'Token sem permissões suficientes. O token precisa ter permissão "repo".'; 
+          } 
+          throw new Error(errorMessage); 
+        } 
+        
+        const result = await response.json(); 
+        hideLoading(); 
+        statusDiv.textContent = `✅ Arquivo ${fileName} enviado com sucesso para o GitHub!`; 
+        statusDiv.className = 'github-status github-success'; 
+        statusDiv.style.display = 'block'; 
+        showStatus(`✅ Arquivo ${fileName} enviado para GitHub com sucesso!`, 'success'); 
+        
+        // Fecha o modal após 2 segundos 
+        setTimeout(() => { 
+          closeDownloadModal(); 
+        }, 2000); 
+      } catch (error) { 
+        hideLoading(); 
+        console.error('Erro ao enviar para GitHub:', error); 
+        statusDiv.textContent = `❌ Erro ao enviar para GitHub: ${error.message}`; 
+        statusDiv.className = 'github-status github-error'; 
+        statusDiv.style.display = 'block'; 
+      } 
+    } 
+    
+    // Importar dados JSON 
+    function importData(event) { 
+      const file = event.target.files[0]; 
+      if (!file) return; 
+      
+      const reader = new FileReader(); 
+      reader.onload = function(e) { 
+        try { 
+          const importedData = JSON.parse(e.target.result); 
+          // Validar estrutura dos dados 
+          if (importedData.home && importedData.canais && importedData.filmes && importedData.series) { 
+            rssItems = importedData; 
+            saveData(); 
+            fetchAndRender(); 
+            showStatus('✅ Dados importados com sucesso!', 'success'); 
+          } else { 
+            showStatus('❌ Formato de arquivo inválido', 'error'); 
+          } 
+        } catch (error) { 
+          showStatus('❌ Erro ao importar dados: ' + error.message, 'error'); 
+        } 
+      }; 
+      reader.readAsText(file); 
+      event.target.value = ''; // Reset input 
+    } 
+    
+    // Importar dados RSS 
+    function importRSSData(event) { 
+      const file = event.target.files[0]; 
+      if (!file) return; 
+      
+      // Detectar tipo de arquivo pelo nome 
+      const fileName = file.name.toLowerCase(); 
+      let targetTab = 'home'; 
+      if (fileName.includes('filmes')) { 
+        targetTab = 'filmes'; 
+      } else if (fileName.includes('series') || fileName.includes('séries')) { 
+        targetTab = 'series'; 
+      } else if (fileName.includes('canais')) { 
+        targetTab = 'canais'; 
+      } else if (fileName.includes('home')) { 
+        targetTab = 'home'; 
+      } 
+      
+      pendingRSSFileName = fileName; 
+      
+      const reader = new FileReader(); 
+      reader.onload = function(e) { 
+        try { 
+          const xmlContent = e.target.result; 
+          const parser = new DOMParser(); 
+          const xml = parser.parseFromString(xmlContent, 'application/xml'); 
+          
+          // Verifica se o XML é válido 
+          if (xml.querySelector('parsererror')) { 
+            throw new Error('XML inválido'); 
+          } 
+          
+          const items = [...xml.querySelectorAll('item')]; 
+          const importedItems = items.map(item => ({ 
+            title: item.querySelector('title')?.textContent.trim() ?? '', 
+            category: item.querySelector('category')?.textContent.trim() ?? '', 
+            link: item.querySelector('link')?.textContent.trim() ?? '', 
+            description: item.querySelector('description')?.textContent.trim() ?? '', 
+            pubDate: item.querySelector('pubDate')?.textContent.trim() ?? (new Date().toUTCString()), 
+            guid: item.querySelector('guid')?.textContent.trim() ?? (Math.random().toString(36).substr(2)), 
+            logo: item.querySelector('media\\:thumbnail, [url]')?.getAttribute('url') ?? '' 
+          })); 
+          
+          // Armazena os dados importados para processamento posterior 
+          pendingRSSData = { 
+            targetTab: targetTab, 
+            items: importedItems 
+          }; 
+          
+          // Mostra modal de substituição 
+          document.getElementById('rss-item-count').textContent = importedItems.length; 
+          document.getElementById('modal-replace-rss').classList.add('active'); 
+        } catch (error) { 
+          showStatus('❌ Erro ao importar RSS: ' + error.message, 'error'); 
+        } 
+      }; 
+      reader.readAsText(file); 
+      event.target.value = ''; // Reset input 
+    } 
+    
+    // Substituir dados RSS 
+    function replaceRSSData() { 
+      if (!pendingRSSData) return; 
+      
+      const { targetTab, items } = pendingRSSData; 
+      
+      // Substitui todos os itens da aba 
+      rssItems[targetTab] = items; 
+      saveData(); 
+      
+      // Mudar para a aba correspondente 
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active')); 
+      document.querySelector(`.tab[data-tab="${targetTab}"]`).classList.add('active'); 
+      currentTab = targetTab; 
+      
+      fetchAndRender(); 
+      showStatus(`✅ ${items.length} itens importados do RSS substituindo conteúdo atual!`, 'success'); 
+      closeReplaceRSSModal(); 
+    } 
+    
+    // Mesclar dados RSS 
+    function mergeRSSData() { 
+      if (!pendingRSSData) return; 
+      
+      const { targetTab, items } = pendingRSSData; 
+      
+      // Adiciona aos itens existentes 
+      rssItems[targetTab] = [...rssItems[targetTab], ...items]; 
+      saveData(); 
+      
+      // Mudar para a aba correspondente 
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active')); 
+      document.querySelector(`.tab[data-tab="${targetTab}"]`).classList.add('active'); 
+      currentTab = targetTab; 
+      
+      fetchAndRender(); 
+      showStatus(`✅ ${items.length} itens importados do RSS adicionados aos existentes!`, 'success'); 
+      closeReplaceRSSModal(); 
+    } 
+    
+    // Fechar modal de substituição RSS 
+    function closeReplaceRSSModal() { 
+      document.getElementById('modal-replace-rss').classList.remove('active'); 
+      pendingRSSData = null; 
+      pendingRSSFileName = ''; 
+    } 
+    
+    // Exportar dados específicos 
+    function exportToFile(type) { 
+      const dataStr = JSON.stringify(rssItems[type], null, 2); 
+      const dataBlob = new Blob([dataStr], {type: 'application/json'}); 
+      const url = URL.createObjectURL(dataBlob); 
+      const link = document.createElement('a'); 
+      link.href = url; 
+      link.download = `flixTv_${type}_${new Date().toISOString().split('T')[0]}.json`; 
+      document.body.appendChild(link); 
+      link.click(); 
+      document.body.removeChild(link); 
+      URL.revokeObjectURL(url); 
+      showStatus(`✅ ${type.charAt(0).toUpperCase() + type.slice(1)} exportados com sucesso!`, 'success'); 
+      closeExportModal(); 
+    } 
+    
+    // Importar dados específicos 
+    function importFromFile(event, type) { 
+      const file = event.target.files[0]; 
+      if (!file) return; 
+      
+      const reader = new FileReader(); 
+      reader.onload = function(e) { 
+        try { 
+          const importedData = JSON.parse(e.target.result); 
+          // Validar que é um array 
+          if (Array.isArray(importedData)) { 
+            rssItems[type] = importedData; 
+            saveData(); 
+            fetchAndRender(); 
+            showStatus(`✅ ${type.charAt(0).toUpperCase() + type.slice(1)} importados com sucesso!`, 'success'); 
+          } else { 
+            showStatus('❌ Formato de arquivo inválido', 'error'); 
+          } 
+        } catch (error) { 
+          showStatus('❌ Erro ao importar dados: ' + error.message, 'error'); 
+        } 
+      }; 
+      reader.readAsText(file); 
+      event.target.value = ''; // Reset input 
+      closeExportModal(); 
+    } 
+    
+    // Mostra mensagem de status 
+    function showStatus(message, type = 'info') { 
+      statusMessage.textContent = message; 
+      statusMessage.className = `status-message status-${type}`; 
+      statusMessage.style.display = 'block'; 
+      setTimeout(() => { 
+        statusMessage.style.display = 'none'; 
+      }, 5000); 
+    } 
+    
+    // Controles do Modal 
+    function openModal(item) { 
+      document.getElementById('modal-form').classList.add('active'); 
+      document.getElementById('modal-title').innerText = editingGuid ? "Editar Conteúdo" : "Adicionar Conteúdo"; 
+      
+      let itemToEdit = item; 
+      if (editingGuid && !itemToEdit) { 
+        itemToEdit = rssItems[currentTab].find(it => it.guid === editingGuid); 
+      } 
+      
+      document.getElementById('input-title').value = itemToEdit?.title || ''; 
+      document.getElementById('input-category').value = itemToEdit?.category || ''; 
+      document.getElementById('input-logo').value = itemToEdit?.logo || ''; 
+      document.getElementById('input-link').value = itemToEdit?.link || ''; 
+      document.getElementById('input-description').value = itemToEdit?.description || ''; 
+      
+      validarCanalLogo(); 
+    } 
+    
+    function closeModal() { 
+      document.getElementById('modal-form').classList.remove('active'); 
+      editingGuid = null; 
+      // Limpa resultados da busca 
+      document.getElementById('tmdb-results').style.display = 'none'; 
+      document.getElementById('search-status').textContent = ''; 
+    } 
+    
+    function openExportModal() { 
+      document.getElementById('modal-export').classList.add('active'); 
+    } 
+    
+    function closeExportModal() { 
+      document.getElementById('modal-export').classList.remove('active'); 
+    } 
+    
+    // Modal M3U 
+    function openM3UModal() { 
+      document.getElementById('modal-m3u').classList.add('active'); 
+      document.getElementById('m3u-file').value = ''; 
+      document.getElementById('m3u-content').style.display = 'none'; 
+      m3uItems = []; 
+      selectedM3UItem = null; 
+    } 
+    
+    function closeM3UModal() { 
+      document.getElementById('modal-m3u').classList.remove('active'); 
+    } 
+    
+    // Processar arquivo M3U 
+    document.getElementById('m3u-file').addEventListener('change', function(e) { 
+      const file = e.target.files[0]; 
+      if (!file) return; 
+      
+      if (!file.name.toLowerCase().includes('m3.m3u')) { 
+        showStatus('⚠️ Por favor, selecione o arquivo M3.m3u', 'warning'); 
+        return; 
+      } 
+      
+      showLoading('Processando arquivo M3U...'); 
+      
+      const reader = new FileReader(); 
+      reader.onload = function(e) { 
+        try { 
+          processM3UContent(e.target.result); 
+          hideLoading(); 
+        } catch (error) { 
+          hideLoading(); 
+          showStatus('❌ Erro ao processar arquivo M3U: ' + error.message, 'error'); 
+        } 
+      }; 
+      
+      reader.onerror = function() { 
+        hideLoading(); 
+        showStatus('❌ Erro ao ler arquivo', 'error'); 
+      }; 
+      
+      reader.readAsText(file); 
+    }); 
+    
+    function processM3UContent(content) { 
+      const lines = content.split('\n'); 
+      m3uItems = []; 
+      let currentItem = null; 
+      
+      for (let i = 0; i < lines.length; i++) { 
+        const line = lines[i].trim(); 
+        
+        if (line.startsWith('#EXTINF:')) { 
+          // Parse EXTINF line 
+          const extinf = line.substring(8); 
+          const commaIndex = extinf.indexOf(','); 
+          const params = extinf.substring(0, commaIndex); 
+          const title = extinf.substring(commaIndex + 1); 
+          
+          currentItem = { 
+            title: title, 
+            url: '', 
+            group: 'CANAIS AO VIVO', // Default category 
+            tvgId: '', 
+            tvgLogo: '' 
+          }; 
+          
+          // Parse parameters 
+          const paramsList = params.split(' '); 
+          paramsList.forEach(param => { 
+            if (param.startsWith('group-title="')) { 
+              currentItem.group = param.substring(13, param.length - 1); 
+            } else if (param.startsWith('tvg-id="')) { 
+              currentItem.tvgId = param.substring(8, param.length - 1); 
+            } else if (param.startsWith('tvg-logo="')) { 
+              currentItem.tvgLogo = param.substring(10, param.length - 1); 
+            } 
+          }); 
+        } else if (line && !line.startsWith('#') && currentItem) { 
+          // URL line 
+          currentItem.url = line; 
+          m3uItems.push(currentItem); 
+          currentItem = null; 
+        } 
+      } 
+      
+      displayM3UItems(); 
+    } 
+    
+    function displayM3UItems() { 
+      const contentDiv = document.getElementById('m3u-content'); 
+      const itemsList = document.getElementById('m3u-items-list'); 
+      
+      if (m3uItems.length === 0) { 
+        itemsList.innerHTML = '<div class="empty-state"><p>Nenhum conteúdo encontrado no arquivo M3U</p></div>'; 
+        contentDiv.style.display = 'block'; 
+        return; 
+      } 
+      
+      // Agrupar por categoria 
+      const groupedItems = {}; 
+      m3uItems.forEach(item => { 
+        if (!groupedItems[item.group]) { 
+          groupedItems[item.group] = []; 
+        } 
+        groupedItems[item.group].push(item); 
+      }); 
+      
+      let html = ''; 
+      
+      // Ordenar categorias: Canais ao Vivo primeiro, depois Filmes, Séries, etc. 
+      const categoryOrder = ['CANAIS AO VIVO', 'FILMES', 'SÉRIES', 'FILMES E SÉRIES']; 
+      const sortedCategories = Object.keys(groupedItems).sort((a, b) => { 
+        const indexA = categoryOrder.indexOf(a.toUpperCase()); 
+        const indexB = categoryOrder.indexOf(b.toUpperCase()); 
+        if (indexA !== -1 && indexB !== -1) return indexA - indexB; 
+        if (indexA !== -1) return -1; 
+        if (indexB !== -1) return 1; 
+        return a.localeCompare(b); 
+      }); 
+      
+      sortedCategories.forEach(category => { 
+        html += `<div class="m3u-category">${category}</div>`; 
+        groupedItems[category].forEach(item => { 
+          const logo = item.tvgLogo || getCanalLogoFromTitle(item.title); 
+          html += ` 
+            <div class="m3u-item" onclick="selectM3UItem(this)" data-title="${escapeHTML(item.title)}" data-url="${escapeHTML(item.url)}" data-category="${escapeHTML(category)}" data-logo="${escapeHTML(logo)}"> 
+              <div class="m3u-item-title">${item.title}</div> 
+              <div class="m3u-item-url">${item.url.substring(0, 80)}...</div> 
+              <div class="action-buttons"> 
+                <button class="btn-copy" onclick="event.stopPropagation(); copyM3UItem('${escapeHTML(item.title)}', '${escapeHTML(item.url)}', '${escapeHTML(category)}', '${escapeHTML(logo)}')">📋 Copiar</button> 
+                <button class="btn-add-rss" onclick="event.stopPropagation(); addM3UItemToRSS('${escapeHTML(item.title)}', '${escapeHTML(item.url)}', '${escapeHTML(category)}', '${escapeHTML(logo)}')">➕ RSS</button> 
+              </div> 
+            </div> 
+          `; 
+        }); 
+      }); 
+      
+      itemsList.innerHTML = html; 
+      contentDiv.style.display = 'block'; 
+      showStatus(`✅ ${m3uItems.length} itens carregados do arquivo M3U`, 'success'); 
+    } 
+    
+    function escapeHTML(str) { 
+      return str.replace(/"/g, '&quot;').replace(/'/g, '&#39;'); 
+    } 
+    
+    function selectM3UItem(element) { 
+      // Remove seleção anterior 
+      document.querySelectorAll('.m3u-item').forEach(item => { 
+        item.classList.remove('selected'); 
+      }); 
+      
+      // Adiciona seleção atual 
+      element.classList.add('selected'); 
+      selectedM3UItem = { 
+        title: element.dataset.title, 
+        url: element.dataset.url, 
+        category: element.dataset.category, 
+        logo: element.dataset.logo 
+      }; 
+    } 
+    
+    function copyM3UItem(title, url, category, logo) { 
+      const itemData = { 
+        title: title, 
+        url: url, 
+        category: category, 
+        logo: logo, 
+        description: `Conteúdo carregado do M3U: ${title}` 
+      }; 
+      
+      const textToCopy = `Título: ${title}\nURL: ${url}\nCategoria: ${category}\nLogo: ${logo}`; 
+      
+      navigator.clipboard.writeText(textToCopy).then(() => { 
+        showStatus('✅ Conteúdo copiado para a área de transferência!', 'success'); 
+      }).catch(() => { 
+        // Fallback para navegadores mais antigos 
+        const textArea = document.createElement('textarea'); 
+        textArea.value = textToCopy; 
+        document.body.appendChild(textArea); 
+        textArea.select(); 
+        document.execCommand('copy'); 
+        document.body.removeChild(textArea); 
+        showStatus('✅ Conteúdo copiado para a área de transferência!', 'success'); 
+      }); 
+    } 
+    
+    async function addM3UItemToRSS(title, url, category, logo) { 
+      const newItem = { 
+        title: title, 
+        category: category, 
+        link: url, 
+        description: `Conteúdo carregado do M3U: ${title}`, 
+        pubDate: new Date().toUTCString(), 
+        guid: 'm3u_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9), 
+        logo: logo || getCanalLogoFromTitle(title) 
+      }; 
+      
+      const novosItens = [...rssItems[currentTab], newItem]; 
+      const success = await salvarNoLocal(novosItens); 
+      
+      if (success) { 
+        showStatus(`✅ "${title}" adicionado ao RSS com sucesso!`, 'success'); 
+      } 
+    } 
+    
+    function getCanalLogoFromTitle(title) { 
+      const canalSlug = getCanalSlugFromTitle(title); 
+      if (canalSlug) { 
+        return `${CANAL_LOGO_BASE_URL}${canalSlug}.png`; 
+      } 
+      return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjMUEyQTMzIi8+CjxwYXRoIGQ9Ik04MCA2MEgxMjBWOTBIMTAwVjgwSDgwVjYwWk02MCAxMDBWODBINzBWMTIwSDYwVjEwMFpNODAgMTIwVjEwMEg5MFYxMjBIODBaTTEwMCAxMjBWMTEwSDEyMFYxMjBIMTAwWk03MCA3MEg5MFY5MEg3MFY3MFpNOTAgOTBIMTEwVjExMEg5MFY5MFoiIGZpbGw9IiM2NjY2NjYiLz4KPC9zdmc+'; 
+    } 
+    
+    // Mostra/oculta loading 
+    function showLoading(message = 'Processando...') { 
+      document.getElementById('loading-text').textContent = message; 
+      loadingOverlay.classList.add('active'); 
+    } 
+    
+    function hideLoading() { 
+      loadingOverlay.classList.remove('active'); 
+    } 
+    
+    // Constrói o XML RSS 
+    function buildRSSFromItems(items) { 
+      let xml = `<?xml version="1.0" encoding="UTF-8"?> 
+    <rss xmlns:media="http://search.yahoo.com/mrss/" version="2.0"> 
+      <channel> 
+        <title>Roku-Developer-Sample-Feed</title> 
+        `; 
+      
+      items.forEach(item => { 
+        xml += ` 
+          <item> 
+            <title>${escapeXML(item.title)}</title> 
+            <category>${escapeXML(item.category)}</category> 
+            <link>${escapeXML(item.link)}</link> 
+            <description>${escapeXML(item.description)}</description> 
+            <pubDate>${item.pubDate}</pubDate> 
+            <guid isPermaLink="false">${item.guid}</guid> 
+            <media:content channels="2" bitrate="1500" duration="0" fileSize="0" framerate="25" height="720" width="1280" type="video/m3u8" isDefault="true" url="${escapeXML(item.link)}"> 
+              <media:thumbnail url="${escapeXML(item.logo)}" /> 
+              <media:title>${escapeXML(item.title)}</media:title> 
+            </media:content> 
+          </item> 
+        `; 
+      }); 
+      
+      xml += ` 
+      </channel> 
+    </rss>`; 
+      return xml; 
+    } 
+    
+    // Escapa caracteres especiais para XML 
+    function escapeXML(str) { 
+      return str.replace(/[<>&"']/g, function(match) { 
+        switch(match) { 
+          case '<': return '&lt;'; 
+          case '>': return '&gt;'; 
+          case '&': return '&amp;'; 
+          case '"': return '&quot;'; 
+          case "'": return '&apos;'; 
+          default: return match; 
+        } 
+      }); 
+    } 
+    
+    // Atualiza interface 
+    function updateItemInUI(item) { 
+      const cards = document.querySelectorAll('.content-card'); 
+      cards.forEach(card => { 
+        if (card.dataset.guid === item.guid) { 
+          card.querySelector('.title').textContent = item.title; 
+          card.querySelector('.desc').textContent = item.description.length > 55 ? item.description.slice(0, 52) + "..." : item.description; 
+          card.querySelector('.cover').src = item.logo; 
+          card.querySelector('.cover').alt = item.title; 
+        } 
+      }); 
+    } 
+    
+    function removeItemFromUI(guid) { 
+      const cards = document.querySelectorAll('.content-card'); 
+      cards.forEach(card => { 
+        if (card.dataset.guid === guid) { 
+          card.style.opacity = '0'; 
+          card.style.transform = 'scale(0.8)'; 
+          setTimeout(() => card.remove(), 300); 
+        } 
+      }); 
+    } 
+    
+    // Carrega e renderiza o feed 
+    function fetchAndRender() { 
+      try { 
+        const items = rssItems[currentTab] || []; 
+        renderCategories(items); 
+      } catch (error) { 
+        console.error('Erro ao carregar RSS:', error); 
+        categoriesContainer.innerHTML = ` 
+          <div class="empty-state"> 
+            <p>❌ Erro ao carregar o feed: ${error.message}</p> 
+            <p style="margin-top: 10px; font-size: 14px;">Verifique seus dados e tente novamente.</p> 
+          </div> 
+        `; 
+      } 
+    } 
+    
+    // Renderiza categorias 
+    function renderCategories(items) { 
+      const grouped = {}; 
+      items.forEach(item => { 
+        if (!grouped[item.category]) grouped[item.category] = []; 
+        grouped[item.category].push(item); 
+      }); 
+      
+      categoriesContainer.innerHTML = ''; 
+      
+      if (Object.keys(grouped).length === 0) { 
+        categoriesContainer.innerHTML = ` 
+          <div class="empty-state"> 
+            <p>Nenhum conteúdo adicionado ainda.</p> 
+            <p style="margin-top: 10px;">Clique no botão + para começar!</p> 
+          </div> 
+        `; 
+        return; 
+      } 
+      
+      Object.keys(grouped).forEach(category => { 
+        const divCategory = document.createElement('section'); 
+        divCategory.className = 'category'; 
+        
+        // Header da categoria 
+        const logoUrl = grouped[category][0]?.logo || ''; 
+        const categoryHeader = document.createElement('div'); 
+        categoryHeader.className = 'category-header'; 
+        
+        const logoImg = document.createElement('img'); 
+        logoImg.className = 'category-logo'; 
+        logoImg.src = logoUrl; 
+        logoImg.alt = category; 
+        logoImg.onerror = () => logoImg.style.display = 'none'; 
+        
+        const titleCat = document.createElement('h2'); 
+        titleCat.textContent = category; 
+        
+        categoryHeader.appendChild(logoImg); 
+        categoryHeader.appendChild(titleCat); 
+        divCategory.appendChild(categoryHeader); 
+        
+        // Grid de conteúdo 
+        const divContentList = document.createElement('div'); 
+        divContentList.className = 'content-list'; 
+        
+        grouped[category].forEach(item => { 
+          const card = createContentCard(item); 
+          divContentList.appendChild(card); 
+        }); 
+        
+        divCategory.appendChild(divContentList); 
+        categoriesContainer.appendChild(divCategory); 
+      }); 
+    } 
+    
+    // Cria card de conteúdo 
+    function createContentCard(item) { 
+      const card = document.createElement('div'); 
+      card.className = 'content-card'; 
+      card.dataset.guid = item.guid; 
+      
+      const imgCover = document.createElement('img'); 
+      imgCover.className = 'cover'; 
+      imgCover.src = item.logo; 
+      imgCover.alt = item.title; 
+      imgCover.onerror = () => { 
+        imgCover.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjMUEyQTMzIi8+CjxwYXRoIGQ9Ik04MCA2MEgxMjBWOTBIMTAwVjgwSDgwVjYwWk02MCAxMDBWODBINzBWMTIwSDYwVjEwMFpNODAgMTIwVjEwMEg5MFYxMjBIODBaTTEwMCAxMjBWMTEwSDEyMFYxMjBIMTAwWk03MCA3MEg5MFY5MEg3MFY3MFpNOTAgOTBIMTEwVjExMEg5MFY5MFoiIGZpbGw9IiM2NjY2NjYiLz4KPC9zdmc+'; 
+      }; 
+      
+      const cardInfo = document.createElement('div'); 
+      cardInfo.className = 'card-info'; 
+      
+      const titleDiv = document.createElement('div'); 
+      titleDiv.className = 'title'; 
+      titleDiv.textContent = item.title; 
+      
+      const descDiv = document.createElement('div'); 
+      descDiv.className = 'desc'; 
+      descDiv.textContent = item.description.length > 55 ? item.description.slice(0, 52) + "..." : item.description; 
+      
+      cardInfo.appendChild(titleDiv); 
+      cardInfo.appendChild(descDiv); 
+      
+      // Botões de edição 
+      const editBtns = document.createElement('span'); 
+      editBtns.className = 'edit-btns'; 
+      
+      const btnEdit = document.createElement('button'); 
+      btnEdit.className = 'btn btn-edit'; 
+      btnEdit.textContent = '✏️'; 
+      btnEdit.title = 'Editar'; 
+      btnEdit.onclick = (e) => { 
+        e.stopPropagation(); 
+        editingGuid = item.guid; 
+        openModal(item); 
+      }; 
+      
+      const btnDel = document.createElement('button'); 
+      btnDel.className = 'btn btn-del'; 
+      btnDel.textContent = '🗑️'; 
+      btnDel.title = 'Apagar'; 
+      btnDel.onclick = (e) => { 
+        e.stopPropagation(); 
+        if (confirm('Tem certeza que deseja apagar este conteúdo?')) { 
+          apagarItem(item.guid); 
+        } 
+      }; 
+      
+      editBtns.appendChild(btnEdit); 
+      editBtns.appendChild(btnDel); 
+      
+      card.appendChild(imgCover); 
+      card.appendChild(cardInfo); 
+      card.appendChild(editBtns); 
+      
+      return card; 
+    } 
+    
+    // Salva localmente 
+    async function salvarNoLocal(novosItens) { 
+      showLoading('Salvando...'); 
+      
+      try { 
+        rssItems[currentTab] = novosItens; 
+        const success = saveData(); 
+        
+        if (success) { 
+          hideLoading(); 
+          showStatus('✅ Conteúdo salvo com sucesso!', 'success'); 
+          closeModal(); 
+          editingGuid = null; 
+          renderCategories(novosItens); 
+          return true; 
+        } else { 
+          throw new Error('Erro ao salvar dados localmente'); 
+        } 
+      } catch (error) { 
+        hideLoading(); 
+        showStatus(`❌ Erro ao salvar: ${error.message}`, 'error'); 
+        return false; 
+      } 
+    } 
+    
+    // Adiciona ou edita item 
+    async function salvarItem() { 
+      const title = document.getElementById('input-title').value.trim(); 
+      const category = document.getElementById('input-category').value.trim(); 
+      let logo = document.getElementById('input-logo').value.trim(); 
+      const link = document.getElementById('input-link').value.trim(); 
+      const description = document.getElementById('input-description').value.trim(); 
+      
+      // Validações 
+      if (!title || !category || !logo || !link) { 
+        showStatus('⚠️ Preencha todos os campos obrigatórios!', 'warning'); 
+        return; 
+      } 
+      
+      // Processa logo do canal 
+      if (logo && !logo.startsWith('http') && !logo.startsWith('data:')) { 
+        const canalSlug = logo.toLowerCase().replace(/[^a-z0-9]/g, ''); 
+        logo = `${CANAL_LOGO_BASE_URL}${canalSlug}.png`; 
+      } 
+      
+      // Valida URL 
+      try { 
+        new URL(link); 
+      } catch { 
+        showStatus('⚠️ URL do conteúdo inválida!', 'warning'); 
+        return; 
+      } 
+      
+      const newItem = { 
+        title, 
+        category, 
+        link, 
+        description, 
+        pubDate: new Date().toUTCString(), 
+        guid: editingGuid ?? 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9), 
+        logo 
+      }; 
+      
+      let novosItens; 
+      if (editingGuid) { 
+        novosItens = rssItems[currentTab].map(it => it.guid === editingGuid ? newItem : it); 
+      } else { 
+        novosItens = [...rssItems[currentTab], newItem]; 
+      } 
+      
+      // Mostra loading no botão 
+      const btnSave = document.getElementById('btn-save'); 
+      const btnSaveText = document.getElementById('btn-save-text'); 
+      const btnSaveSpinner = document.getElementById('btn-save-spinner'); 
+      
+      btnSave.disabled = true; 
+      btnSaveText.textContent = 'Salvando...'; 
+      btnSaveSpinner.style.display = 'inline-block'; 
+      
+      const success = await salvarNoLocal(novosItens); 
+      
+      // Restaura botão 
+      btnSave.disabled = false; 
+      btnSaveText.textContent = 'Salvar'; 
+      btnSaveSpinner.style.display = 'none'; 
+      
+      if (success) { 
+        closeModal(); 
+      } 
+    } 
+    
+    // Apaga item 
+    async function apagarItem(guid) { 
+      if (!confirm('Tem certeza que deseja apagar este conteúdo?')) { 
+        return; 
+      } 
+      
+      removeItemFromUI(guid); 
+      const novosItens = rssItems[currentTab].filter(it => it.guid !== guid); 
+      await salvarNoLocal(novosItens); 
+    } 
+    
+    // Busca TMDb 
+    async function buscarConteudoTMDbAoDigitar() { 
+      const title = document.getElementById('input-title').value.trim(); 
+      const statusDiv = document.getElementById('search-status'); 
+      
+      if (searchTimeout) clearTimeout(searchTimeout); 
+      
+      if (!title) { 
+        statusDiv.textContent = ''; 
+        lastSearchTerm = ''; 
+        document.getElementById('tmdb-results').style.display = 'none'; 
+        return; 
+      } 
+      
+      if (title.length < 2) { 
+        statusDiv.textContent = ''; 
+        return; 
+      } 
+      
+      if (title === lastSearchTerm) { 
+        return; 
+      } 
+      
+      statusDiv.textContent = '🔍 Buscando...'; 
+      statusDiv.style.color = '#888'; 
+      
+      searchTimeout = setTimeout(() => { 
+        executarBuscaTMDb(title, statusDiv); 
+      }, 800); 
+    } 
+    
+    async function executarBuscaTMDb(title, statusDiv) { 
+      try { 
+        const url = `${TMDB_BASE_URL}/search/multi?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(title)}&language=pt-BR`; 
+        const response = await fetch(url); 
+        
+        if (!response.ok) { 
+          throw new Error('Erro na API TMDb'); 
+        } 
+        
+        const data = await response.json(); 
+        const resultsDiv = document.getElementById('tmdb-results'); 
+        const resultList = document.getElementById('tmdb-result-list'); 
+        
+        if (data.results && data.results.length > 0) { 
+          const validResults = data.results.filter(r => r.poster_path || r.profile_path); 
+          
+          if (validResults.length > 0) { 
+            resultList.innerHTML = ''; 
             
-            const resultTitle = result.title || result.name || 'Desconhecido';
-            const description = result.overview || '';
-
-            const card = document.createElement('div');
-            card.className = 'result-card';
-            card.onclick = () => selecionarResultadoTMDb(resultTitle, imageUrl, description);
-
-            const img = document.createElement('img');
-            img.src = imageUrl;
-            img.alt = resultTitle;
-            img.onerror = () => { card.style.opacity = '0.5'; };
-
-            const info = document.createElement('div');
-            info.className = 'result-card-info';
-            info.textContent = resultTitle.substring(0, 15) + (resultTitle.length > 15 ? '...' : '');
-
-            card.appendChild(img);
-            card.appendChild(info);
-            resultList.appendChild(card);
-          });
-
-          resultsDiv.style.display = 'block';
-          statusDiv.textContent = `Clique em uma imagem para selecionar (${validResults.length} resultado(s))`;
-          statusDiv.style.color = '#4caf50';
-          lastSearchTerm = title;
-        } else {
-          resultsDiv.style.display = 'none';
-          statusDiv.textContent = 'Nenhuma imagem encontrada no TMDb';
-          statusDiv.style.color = '#ff9800';
-        }
-      } else {
-        resultsDiv.style.display = 'none';
-        statusDiv.textContent = 'Não encontrado no TMDb';
-        statusDiv.style.color = '#ff9800';
-      }
-    } catch (error) {
-      console.error('Erro ao buscar no TMDb:', error);
-      document.getElementById('tmdb-results').style.display = 'none';
-      statusDiv.textContent = 'Erro na busca';
-      statusDiv.style.color = '#f44336';
-    }
-  }
-
-  // Lista de canais conhecidos
-  const CANAIS_CONHECIDOS = [
-    'adult swim', 'ae', 'agro+', 'amazonas', 'amc', 'animal planet', 'aparecida', 'arte1', 'axn', 'bahia', 'band', 
-    'band news', 'band sports', 'bis', 'brasilia', 'canal brasil', 'canal off', 'cartoon network', 'cartoonito', 
-    'cazetv', 'cazetv 2', 'cazetv 3', 'ceara', 'cinemax', 'cnn brasil', 'combate', 'comedy central', 'curta!', 
-    'discovery channel', 'discovery home e health', 'discovery id', 'discovery kids', 'discovery science', 
-    'discovery theater', 'discovery turbo', 'discovery world', 'e!', 'espirito santo', 'espn', 'espn 2', 'espn 3', 
-    'espn 4', 'espn 5', 'espn 6', 'fashion tv', 'fish tv', 'food network', 'futura', 'news', 'play novelas', 
-    'gloob', 'gloobinho', 'gnt', 'goias', 'hbo', 'hbo 2', 'hbo family', 'hbo plus', 'hbo signature', 'hbo xtreme', 
-    'hgtv', 'history', 'history 2', 'jp news', 'lifetime', 'maranhao', 'max', 'max 2', 'max 3', 'megapix', 
-    'minas gerais', 'modo viagem', 'mtv', 'mtv 00s', 'mtv live', 'multishow', 'nba tv', 'nick jr', 'nickelodeon', 
-    'nsports', 'para', 'paraiba', 'paramount network', 'paramount+', 'paramount+ 2', 'paramount+ 3', 'paramount+ 4', 
-    'parana', 'pernambuco', 'piaui', 'premiere', 'premiere (alternativo)', 'premiere 2', 'premiere 2 (alternativo)', 
-    'premiere 3', 'premiere 3 (alternativo)', 'premiere 4', 'premiere 4 (alternativo)', 'premiere 5', 
-    'premiere 5 (alternativo)', 'premiere 6', 'premiere 6 (alternativo)', 'premiere 7', 'premiere 7 (alternativo)', 
-    'premiere 8', 'premiere 8 (alternativo)', 'prime video', 'prime video 2', 'prime video 3', 'prime video 4', 
-    'record', 'record news', 'rede tv!', 'rio de janeiro', 'rio grande do norte', 'rio grande do sul', 
-    'sabor e arte', 'santa catarina', 'sao paulo', 'sbt', 'sony channel', 'sony movies', 'space', 'sportv', 
-    'sportv (alternativo)', 'sportv 2', 'sportv 2 (alternativo)', 'sportv 3', 'sportv 3 (alternativo)', 
-    'sportv 4', 'sportv 4 (alternativo)', 'sportynet', 'studio universal', 'telecine action', 'telecine cult', 
-    'telecine fun', 'telecine pipoca', 'telecine premium', 'telecine touch', 'tlc', 'tnt', 'tnt novelas', 
-    'tnt series', 'tooncast', 'tv brasil', 'tv cultura', 'ufc fight pass', 'universal premiere', 'universal reality', 
-    'universal tv', 'usa', 'warner tv', 'woohoo', 'xsports'
-  ];
-
-  // Validação de canal
-  function validarCanalLogo() {
-    const titleInput = document.getElementById('input-title');
-    const logoInput = document.getElementById('input-logo');
-    const suggestionsDiv = document.getElementById('canal-suggestions');
-    const logosContainer = document.getElementById('canal-logos-suggestions');
-    const logosList = document.getElementById('canal-logos-list');
-    const termoBusca = titleInput.value.trim().toLowerCase();
-
-    if (!termoBusca) {
-      suggestionsDiv.innerHTML = `💡 <strong>Dica:</strong> Digite o nome do canal (ex: sbt, globo) para usar a API de logos automática!`;
-      suggestionsDiv.style.color = '#888';
-      logosContainer.style.display = 'none';
-      return;
-    }
-
-    const canalMatch = CANAIS_CONHECIDOS.find(canal => termoBusca.includes(canal));
-
-    if (canalMatch) {
-      suggestionsDiv.innerHTML = `✅ <strong>Canal detectado:</strong> ${canalMatch}`;
-      suggestionsDiv.style.color = '#4caf50';
-    } else {
-      suggestionsDiv.innerHTML = `⚠️ <strong>Nenhum canal conhecido detectado no título.</strong>`;
-      suggestionsDiv.style.color = '#ff9800';
-    }
-
-    const canalsFiltrados = CANAIS_CONHECIDOS.filter(canal => termoBusca.includes(canal));
+            validResults.forEach((result) => { 
+              const imageUrl = result.poster_path ? `${TMDB_IMAGE_BASE_URL}${result.poster_path}` : `${TMDB_IMAGE_BASE_URL}${result.profile_path}`; 
+              const resultTitle = result.title || result.name || 'Desconhecido'; 
+              const description = result.overview || ''; 
+              
+              const card = document.createElement('div'); 
+              card.className = 'result-card'; 
+              card.onclick = () => selecionarResultadoTMDb(resultTitle, imageUrl, description); 
+              
+              const img = document.createElement('img'); 
+              img.src = imageUrl; 
+              img.alt = resultTitle; 
+              img.onerror = () => { 
+                card.style.opacity = '0.5'; 
+              }; 
+              
+              const info = document.createElement('div'); 
+              info.className = 'result-card-info'; 
+              info.textContent = resultTitle.substring(0, 15) + (resultTitle.length > 15 ? '...' : ''); 
+              
+              card.appendChild(img); 
+              card.appendChild(info); 
+              resultList.appendChild(card); 
+            }); 
+            
+            resultsDiv.style.display = 'block'; 
+            statusDiv.textContent = `Clique em uma imagem para selecionar (${validResults.length} resultado(s))`; 
+            statusDiv.style.color = '#4caf50'; 
+            lastSearchTerm = title; 
+          } else { 
+            resultsDiv.style.display = 'none'; 
+            statusDiv.textContent = 'Nenhuma imagem encontrada no TMDb'; 
+            statusDiv.style.color = '#ff9800'; 
+          } 
+        } else { 
+          resultsDiv.style.display = 'none'; 
+          statusDiv.textContent = 'Não encontrado no TMDb'; 
+          statusDiv.style.color = '#ff9800'; 
+        } 
+      } catch (error) { 
+        console.error('Erro ao buscar no TMDb:', error); 
+        document.getElementById('tmdb-results').style.display = 'none'; 
+        statusDiv.textContent = 'Erro na busca'; 
+        statusDiv.style.color = '#f44336'; 
+      } 
+    } 
     
-    if (canalsFiltrados.length > 0) {
-      logosList.innerHTML = '';
-      canalsFiltrados.forEach(canal => {
-        const logoUrl = CANAL_LOGO_BASE_URL + canal.toLowerCase().replace(/[^a-z0-9]/g, '') + '.png';
-        const canalCard = document.createElement('div');
-        canalCard.style.cssText = 'cursor: pointer; border-radius: 6px; overflow: hidden; border: 2px solid transparent; transition: all 0.2s ease;';
-        
-        const img = document.createElement('img');
-        img.src = logoUrl;
-        img.alt = canal;
-        img.style.cssText = 'width: 100%; max-height: 100px; object-fit: contain; background: #1a1a1a; padding: 5px; display: block;';
-        img.onerror = function() { this.style.display = 'none'; };
-        
-        canalCard.appendChild(img);
-        canalCard.title = canal;
-        
-        canalCard.onclick = function() {
-          logoInput.value = logoUrl;
-          suggestionsDiv.innerHTML = `✅ <strong>Logo selecionada:</strong> ${canal}`;
-          suggestionsDiv.style.color = '#4caf50';
-          logosContainer.style.display = 'none';
-        };
-        
-        canalCard.onmouseover = function() {
-          this.style.borderColor = '#e50914';
-          this.style.transform = 'scale(1.05)';
-        };
-        
-        canalCard.onmouseout = function() {
-          this.style.borderColor = 'transparent';
-          this.style.transform = 'scale(1)';
-        };
-        
-        logosList.appendChild(canalCard);
-      });
+    // Lista de canais conhecidos 
+    const CANAIS_CONHECIDOS = [ 
+      'adult swim', 'ae', 'agro+', 'amazonas', 'amc', 'animal planet', 'aparecida', 'arte1', 'axn', 
+      'bahia', 'band', 'band news', 'band sports', 'bis', 'brasilia', 'canal brasil', 'canal off', 'cartoon network', 'cartoonito', 'cazetv', 'cazetv 2', 'cazetv 3', 'ceara', 'cinemax', 'cnn brasil', 'combate', 'comedy central', 'curta!', 
+      'discovery channel', 'discovery home e health', 'discovery id', 'discovery kids', 'discovery science', 'discovery theater', 'discovery turbo', 'discovery world', 
+      'e!', 'espirito santo', 'espn', 'espn 2', 'espn 3', 'espn 4', 'espn 5', 'espn 6', 
+      'fashion tv', 'fish tv', 'food network', 'futura', 'news', 'play novelas', 
+      'gloob', 'gloobinho', 'gnt', 'goias', 
+      'hbo', 'hbo 2', 'hbo family', 'hbo plus', 'hbo signature', 'hbo xtreme', 'hgtv', 'history', 'history 2', 
+      'jp news', 
+      'lifetime', 
+      'maranhao', 'max', 'max 2', 'max 3', 'megapix', 'minas gerais', 'modo viagem', 'mtv', 'mtv 00s', 'mtv live', 'multishow', 
+      'nba tv', 'nick jr', 'nickelodeon', 'nsports', 
+      'para', 'paraiba', 'paramount network', 'paramount+', 'paramount+ 2', 'paramount+ 3', 'paramount+ 4', 'parana', 'pernambuco', 'piaui', 'premiere', 'premiere (alternativo)', 'premiere 2', 'premiere 2 (alternativo)', 'premiere 3', 'premiere 3 (alternativo)', 'premiere 4', 'premiere 4 (alternativo)', 'premiere 5', 'premiere 5 (alternativo)', 'premiere 6', 'premiere 6 (alternativo)', 'premiere 7', 'premiere 7 (alternativo)', 'premiere 8', 'premiere 8 (alternativo)', 'prime video', 'prime video 2', 'prime video 3', 'prime video 4', 
+      'record', 'record news', 'rede tv!', 'rio de janeiro', 'rio grande do norte', 'rio grande do sul', 
+      'sabor e arte', 'santa catarina', 'sao paulo', 'sbt', 'sony channel', 'sony movies', 'space', 'sportv', 'sportv (alternativo)', 'sportv 2', 'sportv 2 (alternativo)', 'sportv 3', 'sportv 3 (alternativo)', 'sportv 4', 'sportv 4 (alternativo)', 'sportynet', 'studio universal', 
+      'telecine action', 'telecine cult', 'telecine fun', 'telecine pipoca', 'telecine premium', 'telecine touch', 'tlc', 'tnt', 'tnt novelas', 'tnt series', 'tooncast', 'tv brasil', 'tv cultura', 
+      'ufc fight pass', 'universal premiere', 'universal reality', 'universal tv', 'usa', 
+      'warner tv', 'woohoo', 
+      'xsports' 
+    ]; 
+    
+    // Validação de canal 
+    function validarCanalLogo() { 
+      const titleInput = document.getElementById('input-title'); 
+      const logoInput = document.getElementById('input-logo'); 
+      const suggestionsDiv = document.getElementById('canal-suggestions'); 
+      const logosContainer = document.getElementById('canal-logos-suggestions'); 
+      const logosList = document.getElementById('canal-logos-list'); 
       
-      logosContainer.style.display = 'block';
-    } else {
-      logosContainer.style.display = 'none';
-    }
-
-    const logoValor = logoInput.value.trim().toLowerCase();
-    if (logoValor.startsWith('http')) {
-      suggestionsDiv.innerHTML = `✅ <strong>URL customizada detectada</strong>`;
-      suggestionsDiv.style.color = '#4caf50';
-    }
-  }
-
-  function getCanalSlugFromTitle(title) {
-    const titleLower = title.toLowerCase();
-    const canalMatch = CANAIS_CONHECIDOS.find(canal => titleLower.includes(canal));
-
-    if (canalMatch) {
-      return canalMatch.toLowerCase().replace(/[^a-z0-9]/g, '');
-    }
-    return null;
-  }
-
-  function selecionarResultadoTMDb(title, imageUrl, description) {
-    document.getElementById('input-title').value = title;
-    document.getElementById('input-description').value = description;
-
-    const canalSlug = getCanalSlugFromTitle(title);
-    if (canalSlug) {
-      document.getElementById('input-logo').value = canalSlug;
-      validarCanalLogo();
-    } else {
-      document.getElementById('input-logo').value = imageUrl;
-    }
+      const termoBusca = titleInput.value.trim().toLowerCase(); 
+      
+      if (!termoBusca) { 
+        suggestionsDiv.innerHTML = `💡 <strong>Dica:</strong> Digite o nome do canal (ex: sbt, globo) para usar a API de logos automática!`; 
+        suggestionsDiv.style.color = '#888'; 
+        logosContainer.style.display = 'none'; 
+        return; 
+      } 
+      
+      const canalMatch = CANAIS_CONHECIDOS.find(canal => termoBusca.includes(canal)); 
+      
+      if (canalMatch) { 
+        suggestionsDiv.innerHTML = `✅ <strong>Canal detectado:</strong> ${canalMatch}`; 
+        suggestionsDiv.style.color = '#4caf50'; 
+      } else { 
+        suggestionsDiv.innerHTML = `⚠️ <strong>Nenhum canal conhecido detectado no título.</strong>`; 
+        suggestionsDiv.style.color = '#ff9800'; 
+      } 
+      
+      const canalsFiltrados = CANAIS_CONHECIDOS.filter(canal => termoBusca.includes(canal)); 
+      
+      if (canalsFiltrados.length > 0) { 
+        logosList.innerHTML = ''; 
+        
+        canalsFiltrados.forEach(canal => { 
+          const logoUrl = CANAL_LOGO_BASE_URL + canal.toLowerCase().replace(/[^a-z0-9]/g, '') + '.png'; 
+          
+          const canalCard = document.createElement('div'); 
+          canalCard.style.cssText = 'cursor: pointer; border-radius: 6px; overflow: hidden; border: 2px solid transparent; transition: all 0.2s ease;'; 
+          
+          const img = document.createElement('img'); 
+          img.src = logoUrl; 
+          img.alt = canal; 
+          img.style.cssText = 'width: 100%; max-height: 100px; object-fit: contain; background: #1a1a1a; padding: 5px; display: block;'; 
+          img.onerror = function() { 
+            this.style.display = 'none'; 
+          }; 
+          
+          canalCard.appendChild(img); 
+          canalCard.title = canal; 
+          
+          canalCard.onclick = function() { 
+            logoInput.value = logoUrl; 
+            suggestionsDiv.innerHTML = `✅ <strong>Logo selecionada:</strong> ${canal}`; 
+            suggestionsDiv.style.color = '#4caf50'; 
+            logosContainer.style.display = 'none'; 
+          }; 
+          
+          canalCard.onmouseover = function() { 
+            this.style.borderColor = '#e50914'; 
+            this.style.transform = 'scale(1.05)'; 
+          }; 
+          
+          canalCard.onmouseout = function() { 
+            this.style.borderColor = 'transparent'; 
+            this.style.transform = 'scale(1)'; 
+          }; 
+          
+          logosList.appendChild(canalCard); 
+        }); 
+        
+        logosContainer.style.display = 'block'; 
+      } else { 
+        logosContainer.style.display = 'none'; 
+      } 
+      
+      const logoValor = logoInput.value.trim().toLowerCase(); 
+      if (logoValor.startsWith('http')) { 
+        suggestionsDiv.innerHTML = `✅ <strong>URL customizada detectada</strong>`; 
+        suggestionsDiv.style.color = '#4caf50'; 
+      } 
+    } 
     
-    document.getElementById('tmdb-results').style.display = 'none';
-    document.getElementById('search-status').textContent = 'Selecionado: ' + title;
-    document.getElementById('search-status').style.color = '#4caf50';
-  }
-
-  // Fecha modais com ESC
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-      closeModal();
-      closeM3UModal();
-      closeExportModal();
-      closeReplaceRSSModal();
-      closeDownloadModal();
-    }
-  });
-</script>
-</body>
-</html>
+    function getCanalSlugFromTitle(title) { 
+      const titleLower = title.toLowerCase(); 
+      const canalMatch = CANAIS_CONHECIDOS.find(canal => titleLower.includes(canal)); 
+      
+      if (canalMatch) { 
+        return canalMatch.toLowerCase().replace(/[^a-z0-9]/g, ''); 
+      } 
+      return null; 
+    } 
+    
+    function selecionarResultadoTMDb(title, imageUrl, description) { 
+      document.getElementById('input-title').value = title; 
+      document.getElementById('input-description').value = description; 
+      
+      const canalSlug = getCanalSlugFromTitle(title); 
+      if (canalSlug) { 
+        document.getElementById('input-logo').value = canalSlug; 
+        validarCanalLogo(); 
+      } else { 
+        document.getElementById('input-logo').value = imageUrl; 
+      } 
+      
+      document.getElementById('tmdb-results').style.display = 'none'; 
+      document.getElementById('search-status').textContent = 'Selecionado: ' + title; 
+      document.getElementById('search-status').style.color = '#4caf50'; 
+    } 
+    
+    // Fecha modais com ESC 
+    document.addEventListener('keydown', function(e) { 
+      if (e.key === 'Escape') { 
+        closeModal(); 
+        closeM3UModal(); 
+        closeExportModal(); 
+        closeReplaceRSSModal(); 
+        closeDownloadModal(); 
+      } 
+    }); 
+  </script> 
+</body> 
+        </html>
